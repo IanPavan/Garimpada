@@ -300,7 +300,7 @@
     if(!SHEET_CSV_URL || SHEET_CSV_URL.includes("COLE_AQUI")){
       throw new Error("SEM_CONFIGURACAO");
     }
-    const res = await fetch(SHEET_CSV_URL, {cache:"no-store"});
+    const res = await fetch(SHEET_CSV_URL + (SHEET_CSV_URL.includes("?") ? "&" : "?") + "_cb=" + Date.now(), {cache:"no-store"});
     if(!res.ok) throw new Error("Não consegui abrir a planilha (status " + res.status + "). Confira se ela está publicada como CSV.");
     const csvText = await res.text();
     const parsed = Papa.parse(csvText, {header:true, skipEmptyLines:true});
