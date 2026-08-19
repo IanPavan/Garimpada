@@ -78,10 +78,37 @@
 <main class="max-w-6xl mx-auto px-5">
 
   <!-- ============ HERO ============ -->
-  <section id="heroSection" class="pt-10 pb-8">
+  <section id="heroSection" class="pt-10 pb-6">
     <p class="font-mono text-[11px] tracking-[0.25em] uppercase" style="color:var(--gold)">Cada visita, um achado</p>
     <h1 class="font-display font-bold text-3xl sm:text-4xl mt-2 max-w-xl leading-tight">Ache o preço. <span style="color:var(--gold-bright)">Não a sorte.</span></h1>
     <p class="mt-2 max-w-md text-sm" style="color:var(--text-dim)">Garimpamos os melhores preços pra você não precisar procurar.</p>
+  </section>
+
+  <!-- ============ POR QUE CONFIAR ============ -->
+  <section id="trustSection" class="pb-10">
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="card rounded-2xl p-4 flex items-start gap-3">
+        <span class="text-xl">🔍</span>
+        <div>
+          <p class="text-sm font-semibold">Preço comparado de verdade</p>
+          <p class="text-[12px] mt-1" style="color:var(--text-dim)">Cada oferta é conferida com o preço de outra loja antes de entrar aqui.</p>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4 flex items-start gap-3">
+        <span class="text-xl">🛒</span>
+        <div>
+          <p class="text-sm font-semibold">Sempre lojas conhecidas</p>
+          <p class="text-[12px] mt-1" style="color:var(--text-dim)">Todo link leva direto pra Mercado Livre, Shopee ou outra loja oficial — nunca pra site desconhecido.</p>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4 flex items-start gap-3">
+        <span class="text-xl">🤝</span>
+        <div>
+          <p class="text-sm font-semibold">Curadoria de uma pessoa só</p>
+          <p class="text-[12px] mt-1" style="color:var(--text-dim)">Sem robô nem lista automática — cada produto aqui foi escolhido e conferido manualmente.</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ CARREGANDO ============ -->
@@ -156,7 +183,10 @@
         <div id="imgDots" class="hidden absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"></div>
       </div>
       <div class="p-5">
-        <p id="modalCategoria" class="font-mono text-[11px] tracking-[0.2em] uppercase" style="color:var(--gold)"></p>
+        <div class="flex items-center gap-2">
+          <p id="modalCategoria" class="font-mono text-[11px] tracking-[0.2em] uppercase" style="color:var(--gold)"></p>
+          <span id="modalPlatformBadge"></span>
+        </div>
         <h2 id="modalNome" class="font-display font-bold text-2xl mt-1 leading-snug"></h2>
 
         <div class="flex items-end gap-3 mt-4">
@@ -220,6 +250,18 @@
   const CATEGORIAS = ["Tecnologia","Roupas","Casa","Beleza","Esportes","Acessórios"];
   const ICONS = { "Tecnologia":"💻","Roupas":"👕","Casa":"🏠","Beleza":"💄","Esportes":"⚽","Acessórios":"⌚" };
 
+  const PLATAFORMAS = {
+    "Mercado Livre": {bg:"#FFE600", text:"#1a1a1a"},
+    "Shopee": {bg:"#FF5722", text:"#ffffff"},
+    "TikTok Shop": {bg:"#111111", text:"#ffffff"},
+    "Amazon": {bg:"#FF9900", text:"#1a1a1a"}
+  };
+  function platformBadge(nome){
+    if(!nome || !PLATAFORMAS[nome]) return "";
+    const p = PLATAFORMAS[nome];
+    return `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:${p.bg}; color:${p.text}">${nome}</span>`;
+  }
+
   let PRODUTOS = [];
 
   const fmt = (n)=> n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -239,6 +281,7 @@
         id: "p" + i,
         nome: (r.Nome||"").trim(),
         categoria: normalizeCategoria(r.Categoria),
+        plataforma: (r.Plataforma||"").trim(),
         precoAfiliado: parseFloat(String(r.PrecoAfiliado||"0").replace(",",".")) || 0,
         precoComparacao: parseFloat(String(r.PrecoComparacao||"0").replace(",",".")) || 0,
         imagem: (r.Imagem||"").trim(),
@@ -282,7 +325,10 @@
           ${p.promocao && p.precoComparacao>p.precoAfiliado ? `<span class="nugget absolute top-1.5 right-1.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full" style="background:var(--urgency); color:#fff">-${off}%</span>` : ""}
         </div>
         <div>
-          <p class="text-[11px] font-mono" style="color:var(--text-faint)">${p.categoria}</p>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <p class="text-[11px] font-mono" style="color:var(--text-faint)">${p.categoria}</p>
+            ${platformBadge(p.plataforma)}
+          </div>
           <p class="text-sm font-medium leading-snug line-clamp-2">${p.nome}</p>
         </div>
         <div class="mt-auto">
@@ -302,7 +348,10 @@
         <div class="flex gap-4">
           ${img}
           <div class="flex-1 min-w-0">
-            <p class="text-[11px] font-mono" style="color:var(--text-faint)">${p.categoria}</p>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <p class="text-[11px] font-mono" style="color:var(--text-faint)">${p.categoria}</p>
+              ${platformBadge(p.plataforma)}
+            </div>
             <p class="font-medium">${p.nome}</p>
           </div>
         </div>
@@ -357,6 +406,7 @@
   const searchInput = document.getElementById("searchInput");
   const searchResultsSection = document.getElementById("searchResultsSection");
   const heroSection = document.getElementById("heroSection");
+  const trustSection = document.getElementById("trustSection");
   const featuredSection = document.getElementById("featuredSection");
   const promoSection = document.getElementById("promoSection");
   const categorySection = document.getElementById("categorySection");
@@ -366,6 +416,7 @@
     if(!q){
       searchResultsSection.classList.add("hidden");
       heroSection.classList.remove("hidden");
+      trustSection.classList.remove("hidden");
       featuredSection.classList.remove("hidden");
       promoSection.classList.remove("hidden");
       categorySection.classList.remove("hidden");
@@ -373,6 +424,7 @@
     }
     const matches = PRODUTOS.filter(p=> p.nome.toLowerCase().includes(q) || p.categoria.toLowerCase().includes(q));
     heroSection.classList.add("hidden");
+    trustSection.classList.add("hidden");
     featuredSection.classList.add("hidden");
     promoSection.classList.add("hidden");
     categorySection.classList.add("hidden");
@@ -468,6 +520,7 @@
     renderModalImage();
 
     document.getElementById("modalCategoria").textContent = p.categoria;
+    document.getElementById("modalPlatformBadge").innerHTML = platformBadge(p.plataforma);
     document.getElementById("modalNome").textContent = p.nome;
     document.getElementById("modalPrecoAfiliado").textContent = fmt(p.precoAfiliado);
 
