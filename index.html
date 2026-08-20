@@ -82,6 +82,9 @@
     <p class="font-mono text-[11px] tracking-[0.25em] uppercase" style="color:var(--gold)">Cada visita, um achado</p>
     <h1 class="font-display font-bold text-3xl sm:text-4xl mt-2 max-w-xl leading-tight">Ache o preço. <span style="color:var(--gold-bright)">Não a sorte.</span></h1>
     <p class="mt-2 max-w-md text-sm" style="color:var(--text-dim)">Garimpamos os melhores preços pra você não precisar procurar.</p>
+    <button id="jumpToAllBtn" class="mt-4 inline-flex items-center gap-1.5 text-xs font-mono px-4 py-2 rounded-full card-soft hover:opacity-80 transition" style="border:1px solid var(--line); color:var(--text-dim)">
+      Ver todos os produtos <span aria-hidden="true">↓</span>
+    </button>
   </section>
 
   <!-- ============ POR QUE CONFIAR ============ -->
@@ -164,7 +167,7 @@
     </section>
 
     <!-- TODOS POR CATEGORIA -->
-    <section id="categorySection" class="pb-16">
+    <section id="categorySection" class="pb-16" style="scroll-margin-top:110px">
       <div class="flex items-center gap-3 mb-4 flex-wrap justify-between">
         <h2 class="font-display font-semibold text-xl" id="categoryTitle">Todos os achados</h2>
         <select id="sortSelect" class="text-xs font-mono px-3 py-2 rounded-full card-soft" style="border:1px solid var(--line); color:var(--text-dim); background:var(--panel-2)">
@@ -279,6 +282,24 @@
     return found || t;
   };
 
+  /** Converte texto de preço pra número, aceitando formato brasileiro (1.648,00) ou simples (1648 / 68.90) */
+  function parsePreco(raw){
+    let s = String(raw||"").trim();
+    if(!s) return 0;
+    if(s.includes(",")){
+      // vírgula presente = separador decimal brasileiro; pontos antes dela são separador de milhar
+      s = s.replace(/\./g, "").replace(",", ".");
+    }else{
+      const partes = s.split(".");
+      // ponto seguido de grupo de 3 dígitos no final = provável separador de milhar (ex: 1.648, 3.000)
+      if(partes.length > 1 && partes[partes.length-1].length === 3){
+        s = partes.join("");
+      }
+      // caso contrário mantém o ponto como decimal (ex: 68.90, 23.5)
+    }
+    return parseFloat(s) || 0;
+  }
+
   /* ============ BUSCAR E CONVERTER OS DADOS DA PLANILHA ============ */
   function parseSheetRows(rows){
     return rows
@@ -288,8 +309,8 @@
         nome: (r.Nome||"").trim(),
         categoria: normalizeCategoria(r.Categoria),
         plataforma: (r.Plataforma||"").trim(),
-        precoAfiliado: parseFloat(String(r.PrecoAfiliado||"0").replace(",",".")) || 0,
-        precoComparacao: parseFloat(String(r.PrecoComparacao||"0").replace(",",".")) || 0,
+        precoAfiliado: parsePreco(r.PrecoAfiliado),
+        precoComparacao: parsePreco(r.PrecoComparacao),
         imagem: (r.Imagem||"").trim(),
         imagem2: (r.Imagem2||"").trim(),
         imagem3: (r.Imagem3||"").trim(),
@@ -615,6 +636,10 @@
   lightbox.addEventListener("click", (e)=>{ if(e.target===lightbox) lightbox.classList.add("hidden"); });
   lightboxPrevBtn.addEventListener("click", ()=> stepImage(-1));
   lightboxNextBtn.addEventListener("click", ()=> stepImage(1));
+
+  document.getElementById("jumpToAllBtn").addEventListener("click", ()=>{
+    document.getElementById("categorySection").scrollIntoView({behavior:"smooth", block:"start"});
+  });
 
   const refreshBtn = document.getElementById("refreshBtn");
   const refreshIcon = document.getElementById("refreshIcon");
