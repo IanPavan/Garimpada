@@ -91,9 +91,6 @@
     <p class="font-mono text-[11px] tracking-[0.25em] uppercase" style="color:var(--gold)">Cada visita, um achado</p>
     <h1 class="font-display font-bold text-3xl sm:text-4xl mt-2 max-w-xl leading-tight">Ache o preço. <span style="color:var(--gold-bright)">Não a sorte.</span></h1>
     <p class="mt-2 max-w-md text-sm" style="color:var(--text-dim)">Garimpamos os melhores preços pra você não precisar procurar.</p>
-    <button id="jumpToAllBtn" class="mt-4 inline-flex items-center gap-1.5 text-xs font-mono px-4 py-2 rounded-full card-soft hover:opacity-80 transition" style="border:1px solid var(--line); color:var(--text-dim)">
-      Ver todos os produtos <span aria-hidden="true">↓</span>
-    </button>
   </section>
 
   <!-- ============ POR QUE CONFIAR ============ -->
@@ -253,6 +250,11 @@
 <footer class="border-t py-6 text-center" style="border-color:var(--line)">
   <p class="text-[11px] font-mono" style="color:var(--text-faint)">Garimpo &middot; Produtos atualizados via planilha do Google Sheets &middot; Pode conter links de afiliado</p>
 </footer>
+
+<!-- ============ BOLINHA FLUTUANTE DE SCROLL ============ -->
+<button id="scrollFab" class="fixed bottom-5 right-5 z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300" style="background:var(--gold); color:var(--void); opacity:0; transform:translateY(12px); pointer-events:none;" aria-label="Ver todos os produtos" title="Ver todos os produtos">
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+</button>
 
 <script>
 (function(){
@@ -646,7 +648,25 @@
   lightboxPrevBtn.addEventListener("click", ()=> stepImage(-1));
   lightboxNextBtn.addEventListener("click", ()=> stepImage(1));
 
-  document.getElementById("jumpToAllBtn").addEventListener("click", ()=>{
+  const scrollFab = document.getElementById("scrollFab");
+  function updateScrollFab(){
+    const showAfter = 260; // aparece depois de rolar um pouco a página
+    const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80);
+    const shouldShow = window.scrollY > showAfter && !nearBottom;
+    scrollFab.style.opacity = shouldShow ? "1" : "0";
+    scrollFab.style.transform = shouldShow ? "translateY(0)" : "translateY(12px)";
+    scrollFab.style.pointerEvents = shouldShow ? "auto" : "none";
+  }
+  let scrollFabTicking = false;
+  window.addEventListener("scroll", ()=>{
+    if(!scrollFabTicking){
+      requestAnimationFrame(()=>{ updateScrollFab(); scrollFabTicking = false; });
+      scrollFabTicking = true;
+    }
+  });
+  updateScrollFab();
+
+  scrollFab.addEventListener("click", ()=>{
     document.getElementById("categorySection").scrollIntoView({behavior:"smooth", block:"start"});
   });
 
