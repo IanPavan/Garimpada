@@ -156,18 +156,34 @@
 
     <!-- DESTAQUES -->
     <section id="featuredSection" class="pb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="text-lg">◆</span>
-        <h2 class="font-display font-semibold text-xl">Em destaque</h2>
+      <div class="flex items-center gap-3 mb-4 flex-wrap justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">◆</span>
+          <h2 class="font-display font-semibold text-xl">Em destaque</h2>
+        </div>
+        <select id="sortSelectFeatured" class="text-xs font-mono px-3 py-2 rounded-full card-soft" style="border:1px solid var(--line); color:var(--text-dim); background:var(--panel-2)">
+          <option value="relevancia">Mais relevantes</option>
+          <option value="menor-preco">Menor preço</option>
+          <option value="maior-preco">Maior preço</option>
+          <option value="maior-desconto">Maior desconto</option>
+        </select>
       </div>
       <div id="featuredGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
     </section>
 
     <!-- PROMOÇÕES -->
     <section id="promoSection" class="pb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="w-2 h-2 rounded-full" style="background:var(--urgency)"></span>
-        <h2 class="font-display font-semibold text-xl">Promoções do garimpo</h2>
+      <div class="flex items-center gap-3 mb-4 flex-wrap justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background:var(--urgency)"></span>
+          <h2 class="font-display font-semibold text-xl">Promoções do garimpo</h2>
+        </div>
+        <select id="sortSelectPromo" class="text-xs font-mono px-3 py-2 rounded-full card-soft" style="border:1px solid var(--line); color:var(--text-dim); background:var(--panel-2)">
+          <option value="relevancia">Mais relevantes</option>
+          <option value="menor-preco">Menor preço</option>
+          <option value="maior-preco">Maior preço</option>
+          <option value="maior-desconto">Maior desconto</option>
+        </select>
       </div>
       <div id="promoGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
     </section>
@@ -251,10 +267,15 @@
   <p class="text-[11px] font-mono" style="color:var(--text-faint)">Garimpo &middot; Produtos atualizados via planilha do Google Sheets &middot; Pode conter links de afiliado</p>
 </footer>
 
-<!-- ============ BOLINHA FLUTUANTE DE SCROLL ============ -->
-<button id="scrollFab" class="fixed bottom-5 right-5 z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300" style="background:var(--gold); color:var(--void); opacity:0; transform:translateY(12px); pointer-events:none;" aria-label="Ver todos os produtos" title="Ver todos os produtos">
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-</button>
+<!-- ============ BOLINHAS FLUTUANTES DE SCROLL ============ -->
+<div class="fixed bottom-5 right-5 z-30 flex flex-col gap-2.5">
+  <button id="scrollUpFab" class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 card-soft" style="border:1px solid var(--line); color:var(--text); opacity:0; transform:translateY(-12px); pointer-events:none;" aria-label="Voltar ao topo" title="Voltar ao topo">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+  </button>
+  <button id="scrollDownFab" class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300" style="background:var(--gold); color:var(--void); opacity:0; transform:translateY(12px); pointer-events:none;" aria-label="Descer para a próxima seção" title="Descer para a próxima seção">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+  </button>
+</div>
 
 <script>
 (function(){
@@ -407,11 +428,40 @@
   }
 
   /* ============ RENDER ============ */
+  function sortProducts(list, sortType){
+    const arr = [...list];
+    if(sortType === "menor-preco"){
+      arr.sort((a,b)=> a.precoAfiliado - b.precoAfiliado);
+    }else if(sortType === "maior-preco"){
+      arr.sort((a,b)=> b.precoAfiliado - a.precoAfiliado);
+    }else if(sortType === "maior-desconto"){
+      const desconto = (p)=> p.precoComparacao > p.precoAfiliado ? pctOff(p.precoAfiliado, p.precoComparacao) : 0;
+      arr.sort((a,b)=> desconto(b) - desconto(a));
+    }
+    // "relevancia" mantém a ordem original (como está na planilha)
+    return arr;
+  }
+
+  let sortFeatured = "relevancia";
+  let sortPromo = "relevancia";
+  let sortCategoria = "relevancia";
+
   function renderFeaturedAndPromo(){
     const base = activeCategory === "Todos" ? PRODUTOS : PRODUTOS.filter(p=>p.categoria===activeCategory);
-    document.getElementById("featuredGrid").innerHTML = base.filter(p=>p.destaque).map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">${activeCategory==="Todos" ? 'Marque "Destaque" como SIM em algum produto na planilha para ele aparecer aqui.' : "Nenhum destaque nessa categoria ainda."}</p>`;
-    document.getElementById("promoGrid").innerHTML = base.filter(p=>p.promocao).map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">${activeCategory==="Todos" ? 'Marque "Promocao" como SIM em algum produto na planilha para ele aparecer aqui.' : "Nenhuma promoção nessa categoria no momento."}</p>`;
+    const destaques = sortProducts(base.filter(p=>p.destaque), sortFeatured);
+    const promocoes = sortProducts(base.filter(p=>p.promocao), sortPromo);
+    document.getElementById("featuredGrid").innerHTML = destaques.map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">${activeCategory==="Todos" ? 'Marque "Destaque" como SIM em algum produto na planilha para ele aparecer aqui.' : "Nenhum destaque nessa categoria ainda."}</p>`;
+    document.getElementById("promoGrid").innerHTML = promocoes.map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">${activeCategory==="Todos" ? 'Marque "Promocao" como SIM em algum produto na planilha para ele aparecer aqui.' : "Nenhuma promoção nessa categoria no momento."}</p>`;
   }
+
+  document.getElementById("sortSelectFeatured").addEventListener("change", (e)=>{
+    sortFeatured = e.target.value;
+    renderFeaturedAndPromo();
+  });
+  document.getElementById("sortSelectPromo").addEventListener("change", (e)=>{
+    sortPromo = e.target.value;
+    renderFeaturedAndPromo();
+  });
 
   const categoryNav = document.getElementById("categoryNav");
   let activeCategory = "Todos";
@@ -431,28 +481,13 @@
   }
   function renderCategoryGrid(){
     const list = activeCategory==="Todos" ? PRODUTOS : PRODUTOS.filter(p=>p.categoria===activeCategory);
-    const sorted = sortProducts(list);
+    const sorted = sortProducts(list, sortCategoria);
     document.getElementById("categoryTitle").textContent = activeCategory==="Todos" ? "Todos os achados" : activeCategory;
     document.getElementById("categoryGrid").innerHTML = sorted.map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">Nenhum produto nessa categoria ainda.</p>`;
   }
 
-  let currentSort = "relevancia";
-  function sortProducts(list){
-    const arr = [...list];
-    if(currentSort === "menor-preco"){
-      arr.sort((a,b)=> a.precoAfiliado - b.precoAfiliado);
-    }else if(currentSort === "maior-preco"){
-      arr.sort((a,b)=> b.precoAfiliado - a.precoAfiliado);
-    }else if(currentSort === "maior-desconto"){
-      const desconto = (p)=> p.precoComparacao > p.precoAfiliado ? pctOff(p.precoAfiliado, p.precoComparacao) : 0;
-      arr.sort((a,b)=> desconto(b) - desconto(a));
-    }
-    // "relevancia" mantém a ordem original (como está na planilha)
-    return arr;
-  }
-
   document.getElementById("sortSelect").addEventListener("change", (e)=>{
-    currentSort = e.target.value;
+    sortCategoria = e.target.value;
     renderCategoryGrid();
   });
 
@@ -648,26 +683,61 @@
   lightboxPrevBtn.addEventListener("click", ()=> stepImage(-1));
   lightboxNextBtn.addEventListener("click", ()=> stepImage(1));
 
-  const scrollFab = document.getElementById("scrollFab");
-  function updateScrollFab(){
-    const showAfter = 260; // aparece depois de rolar um pouco a página
-    const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80);
-    const shouldShow = window.scrollY > showAfter && !nearBottom;
-    scrollFab.style.opacity = shouldShow ? "1" : "0";
-    scrollFab.style.transform = shouldShow ? "translateY(0)" : "translateY(12px)";
-    scrollFab.style.pointerEvents = shouldShow ? "auto" : "none";
+  const scrollDownFab = document.getElementById("scrollDownFab");
+  const scrollUpFab = document.getElementById("scrollUpFab");
+
+  // pontos de parada, em ordem: Promoções -> Todos os achados -> fim da página
+  function getScrollStops(){
+    const promo = document.getElementById("promoSection");
+    const categoria = document.getElementById("categorySection");
+    const fimPagina = document.body.scrollHeight - window.innerHeight;
+    return [
+      { top: promo.getBoundingClientRect().top + window.scrollY - 90 },
+      { top: categoria.getBoundingClientRect().top + window.scrollY - 90 },
+      { top: fimPagina }
+    ];
   }
+
+  function updateScrollFabs(){
+    const y = window.scrollY;
+    const nearBottom = (window.innerHeight + y) >= (document.body.scrollHeight - 40);
+
+    // bolinha de descer: aparece sempre que não estiver colada no final da página
+    const showDown = !nearBottom;
+    scrollDownFab.style.opacity = showDown ? "1" : "0";
+    scrollDownFab.style.transform = showDown ? "translateY(0)" : "translateY(12px)";
+    scrollDownFab.style.pointerEvents = showDown ? "auto" : "none";
+
+    // bolinha de subir: aparece depois que a pessoa já rolou um pouco
+    const showUp = y > 260;
+    scrollUpFab.style.opacity = showUp ? "1" : "0";
+    scrollUpFab.style.transform = showUp ? "translateY(0)" : "translateY(-12px)";
+    scrollUpFab.style.pointerEvents = showUp ? "auto" : "none";
+  }
+
   let scrollFabTicking = false;
   window.addEventListener("scroll", ()=>{
     if(!scrollFabTicking){
-      requestAnimationFrame(()=>{ updateScrollFab(); scrollFabTicking = false; });
+      requestAnimationFrame(()=>{ updateScrollFabs(); scrollFabTicking = false; });
       scrollFabTicking = true;
     }
   });
-  updateScrollFab();
+  updateScrollFabs();
 
-  scrollFab.addEventListener("click", ()=>{
-    document.getElementById("categorySection").scrollIntoView({behavior:"smooth", block:"start"});
+  scrollDownFab.addEventListener("click", ()=>{
+    const y = window.scrollY;
+    const stops = getScrollStops();
+    // acha a próxima parada abaixo da posição atual
+    const proxima = stops.find(s => s.top > y + 20);
+    if(proxima){
+      window.scrollTo({ top: proxima.top, behavior: "smooth" });
+    }else{
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    }
+  });
+
+  scrollUpFab.addEventListener("click", ()=>{
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
   const refreshBtn = document.getElementById("refreshBtn");
