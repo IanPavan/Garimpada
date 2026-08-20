@@ -370,8 +370,9 @@
 
   /* ============ RENDER ============ */
   function renderFeaturedAndPromo(){
-    document.getElementById("featuredGrid").innerHTML = PRODUTOS.filter(p=>p.destaque).map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">Marque "Destaque" como SIM em algum produto na planilha para ele aparecer aqui.</p>`;
-    document.getElementById("promoGrid").innerHTML = PRODUTOS.filter(p=>p.promocao).map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">Marque "Promocao" como SIM em algum produto na planilha para ele aparecer aqui.</p>`;
+    const base = activeCategory === "Todos" ? PRODUTOS : PRODUTOS.filter(p=>p.categoria===activeCategory);
+    document.getElementById("featuredGrid").innerHTML = base.filter(p=>p.destaque).map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">${activeCategory==="Todos" ? 'Marque "Destaque" como SIM em algum produto na planilha para ele aparecer aqui.' : "Nenhum destaque nessa categoria ainda."}</p>`;
+    document.getElementById("promoGrid").innerHTML = base.filter(p=>p.promocao).map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">${activeCategory==="Todos" ? 'Marque "Promocao" como SIM em algum produto na planilha para ele aparecer aqui.' : "Nenhuma promoção nessa categoria no momento."}</p>`;
   }
 
   const categoryNav = document.getElementById("categoryNav");
@@ -385,6 +386,7 @@
       btn.addEventListener("click", ()=>{
         activeCategory = btn.dataset.cat;
         renderCategoryNav();
+        renderFeaturedAndPromo();
         renderCategoryGrid();
       });
     });
