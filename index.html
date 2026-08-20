@@ -165,8 +165,14 @@
 
     <!-- TODOS POR CATEGORIA -->
     <section id="categorySection" class="pb-16">
-      <div class="flex items-center gap-2 mb-4">
+      <div class="flex items-center gap-3 mb-4 flex-wrap justify-between">
         <h2 class="font-display font-semibold text-xl" id="categoryTitle">Todos os achados</h2>
+        <select id="sortSelect" class="text-xs font-mono px-3 py-2 rounded-full card-soft" style="border:1px solid var(--line); color:var(--text-dim); background:var(--panel-2)">
+          <option value="relevancia">Mais relevantes</option>
+          <option value="menor-preco">Menor preço</option>
+          <option value="maior-preco">Maior preço</option>
+          <option value="maior-desconto">Maior desconto</option>
+        </select>
       </div>
       <div id="categoryGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
     </section>
@@ -393,9 +399,30 @@
   }
   function renderCategoryGrid(){
     const list = activeCategory==="Todos" ? PRODUTOS : PRODUTOS.filter(p=>p.categoria===activeCategory);
+    const sorted = sortProducts(list);
     document.getElementById("categoryTitle").textContent = activeCategory==="Todos" ? "Todos os achados" : activeCategory;
-    document.getElementById("categoryGrid").innerHTML = list.map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">Nenhum produto nessa categoria ainda.</p>`;
+    document.getElementById("categoryGrid").innerHTML = sorted.map(productCard).join("") || `<p class="col-span-full text-sm" style="color:var(--text-faint)">Nenhum produto nessa categoria ainda.</p>`;
   }
+
+  let currentSort = "relevancia";
+  function sortProducts(list){
+    const arr = [...list];
+    if(currentSort === "menor-preco"){
+      arr.sort((a,b)=> a.precoAfiliado - b.precoAfiliado);
+    }else if(currentSort === "maior-preco"){
+      arr.sort((a,b)=> b.precoAfiliado - a.precoAfiliado);
+    }else if(currentSort === "maior-desconto"){
+      const desconto = (p)=> p.precoComparacao > p.precoAfiliado ? pctOff(p.precoAfiliado, p.precoComparacao) : 0;
+      arr.sort((a,b)=> desconto(b) - desconto(a));
+    }
+    // "relevancia" mantém a ordem original (como está na planilha)
+    return arr;
+  }
+
+  document.getElementById("sortSelect").addEventListener("change", (e)=>{
+    currentSort = e.target.value;
+    renderCategoryGrid();
+  });
 
   function renderAll(){
     renderFeaturedAndPromo();
