@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gastos</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gastos">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMEEwQTBBIi8+PHRleHQgeD0iNjQiIHk9IjgwIiBmb250LWZhbWlseT0iYXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZm9udC1zaXplPSI1NiIgZmlsbD0iI0Y1RjVGNSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UiQ8L3RleHQ+PC9zdmc+">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMEEwQTBBIi8+PHRleHQgeD0iNjQiIHk9IjgwIiBmb250LWZhbWlseT0iYXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZm9udC1zaXplPSI1NiIgZmlsbD0iI0Y1RjVGNSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UiQ8L3RleHQ+PC9zdmc+">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0A; --panel:#161616; --panel-2:#1F1F1F; --line:#2A2A2A;
+    --text:#F5F5F5; --text-dim:#9A9A9A; --text-faint:#5C5C5C;
+    --obrig:#3DD9C4; --obrig-dim:#1D3B37;
+    --futil:#F5A623; --futil-dim:#3D2E10;
+    --danger:#E5484D;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  .font-mono{font-family:'JetBrains Mono',monospace;}
+  ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+  header{ padding:24px 20px 16px; text-align:center; }
+  header h1{ font-size:15px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin:0; }
+
+  /* ===== RESUMO ===== */
+  .summary{ padding:0 16px 20px; max-width:520px; margin:0 auto; }
+  .total-geral{
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:24px 20px; text-align:center; margin-bottom:12px;
+  }
+  .total-geral .label{ font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px; }
+  .total-geral .value{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:38px; }
+
+  .sub-totals{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .sub-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
+  .sub-card .label{ font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .sub-card.obrig .dot{ background:var(--obrig); }
+  .sub-card.futil .dot{ background:var(--futil); }
+  .sub-card .value{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:19px; }
+  .sub-card.obrig .value{ color:var(--obrig); }
+  .sub-card.futil .value{ color:var(--futil); }
+
+  .mes-total{
+    margin-top:10px; text-align:center; font-size:12px; color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .mes-total b{ color:var(--text); }
+
+  /* ===== FORM ===== */
+  .form-wrap{ padding:4px 16px 20px; max-width:520px; margin:0 auto; }
+  form{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:18px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:7px; }
+  .field input[type="text"], .field input[type="number"]{
+    width:100%; padding:14px 14px; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:12px; color:var(--text); font-size:17px; font-family:'JetBrains Mono',monospace;
+  }
+  .field input:focus{ outline:none; border-color:var(--text-dim); }
+  .field input#fMotivo{ font-family:'Inter',sans-serif; font-size:16px; }
+
+  .toggle-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .toggle-btn{
+    padding:16px 10px; border-radius:12px; border:1.5px solid var(--line);
+    background:var(--panel-2); color:var(--text-dim); font-weight:700; font-size:14px;
+    cursor:pointer; transition:all .15s ease; text-align:center;
+  }
+  .toggle-btn.active.obrig{ background:var(--obrig-dim); border-color:var(--obrig); color:var(--obrig); }
+  .toggle-btn.active.futil{ background:var(--futil-dim); border-color:var(--futil); color:var(--futil); }
+
+  .add-btn{
+    width:100%; margin-top:6px; padding:16px; border:none; border-radius:12px;
+    background:var(--text); color:var(--bg); font-weight:700; font-size:15px;
+    cursor:pointer; transition:transform .1s ease, opacity .15s ease;
+  }
+  .add-btn:active{ transform:scale(0.98); }
+  .add-btn:disabled{ opacity:0.5; }
+  .form-error{ font-size:12px; color:var(--danger); margin-top:10px; display:none; text-align:center; }
+
+  /* ===== FILTRO ===== */
+  .filters{ display:flex; gap:8px; padding:4px 16px 14px; max-width:520px; margin:0 auto; }
+  .filter-btn{
+    flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s ease;
+  }
+  .filter-btn.active{ background:var(--panel-2); color:var(--text); border-color:var(--text-faint); }
+
+  /* ===== LISTA ===== */
+  .entries{ padding:0 16px; max-width:520px; margin:0 auto; }
+  .entry{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .entry .left{ min-width:0; flex:1; }
+  .entry .top-row{ display:flex; align-items:center; gap:7px; margin-bottom:3px; }
+  .entry .badge{ font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:5px; letter-spacing:0.04em; text-transform:uppercase; }
+  .entry .badge.obrig{ background:var(--obrig-dim); color:var(--obrig); }
+  .entry .badge.futil{ background:var(--futil-dim); color:var(--futil); }
+  .entry .motivo{ font-weight:600; font-size:14.5px; word-break:break-word; }
+  .entry .data{ font-size:11.5px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; margin-top:3px; }
+  .entry .right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .entry .valor{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; }
+  .entry .del{
+    background:var(--panel-2); border:none; color:var(--text-faint); width:28px; height:28px;
+    border-radius:8px; cursor:pointer; font-size:14px; transition:all .15s ease;
+  }
+  .entry .del:hover, .entry .del.confirming{ background:var(--danger); color:#fff; }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--text-faint); font-size:13px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<header><h1>Controle de Gastos</h1></header>
+
+<div class="summary">
+  <div class="total-geral">
+    <div class="label">Total geral</div>
+    <div class="value font-mono" id="totalGeral">R$ 0,00</div>
+  </div>
+  <div class="sub-totals">
+    <div class="sub-card obrig">
+      <div class="label"><span class="dot"></span>Obrigatório</div>
+      <div class="value" id="totalObrig">R$ 0,00</div>
+    </div>
+    <div class="sub-card futil">
+      <div class="label"><span class="dot"></span>Fútil</div>
+      <div class="value" id="totalFutil">R$ 0,00</div>
+    </div>
+  </div>
+  <div class="mes-total">Este mês: <b id="totalMes">R$ 0,00</b></div>
+</div>
+
+<div class="form-wrap">
+  <form id="gastoForm">
+    <div class="field">
+      <label>Valor (R$)</label>
+      <input id="fValor" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00" required>
+    </div>
+    <div class="field">
+      <label>Motivo</label>
+      <input id="fMotivo" type="text" placeholder="Ex: almoço, gasolina, mercado..." required>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <div class="toggle-group">
+        <button type="button" class="toggle-btn obrig" id="btnObrig">Obrigatório</button>
+        <button type="button" class="toggle-btn futil" id="btnFutil">Fútil</button>
+      </div>
+    </div>
+    <button type="submit" class="add-btn">Adicionar gasto</button>
+    <p class="form-error" id="formError"></p>
+  </form>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" data-filter="todos">Todos</button>
+  <button class="filter-btn" data-filter="obrigatorio">Obrigatório</button>
+  <button class="filter-btn" data-filter="futil">Fútil</button>
+</div>
+
+<div class="entries" id="entriesList"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORAGE_KEY = "gastos-pessoais-v2";
+  let GASTOS = [];
+  let tipoSelecionado = null;
+  let filtroAtivo = "todos";
+
+  const fmt = (n)=> n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const fmtData = (iso)=> new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}) + " às " + new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+
+  const totalGeralEl = document.getElementById("totalGeral");
+  const totalObrigEl = document.getElementById("totalObrig");
+  const totalFutilEl = document.getElementById("totalFutil");
+  const totalMesEl = document.getElementById("totalMes");
+  const entriesList = document.getElementById("entriesList");
+  const form = document.getElementById("gastoForm");
+  const formError = document.getElementById("formError");
+  const btnObrig = document.getElementById("btnObrig");
+  const btnFutil = document.getElementById("btnFutil");
+
+  function loadGastos(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      GASTOS = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      console.error("Erro ao carregar dados:", e);
+      GASTOS = [];
+    }
+  }
+
+  function saveGastos(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(GASTOS));
+      return true;
+    }catch(e){
+      console.error("Erro ao salvar:", e);
+      return false;
+    }
+  }
+
+  /* ===== toggle tipo ===== */
+  btnObrig.addEventListener("click", ()=>{
+    tipoSelecionado = "obrigatorio";
+    btnObrig.classList.add("active");
+    btnFutil.classList.remove("active");
+  });
+  btnFutil.addEventListener("click", ()=>{
+    tipoSelecionado = "futil";
+    btnFutil.classList.add("active");
+    btnObrig.classList.remove("active");
+  });
+
+  /* ===== filtros ===== */
+  document.querySelectorAll(".filter-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      filtroAtivo = btn.dataset.filter;
+      render();
+    });
+  });
+
+  function render(){
+    const totalGeral = GASTOS.reduce((s,g)=> s + g.valor, 0);
+    const totalObrig = GASTOS.filter(g=>g.tipo==="obrigatorio").reduce((s,g)=> s + g.valor, 0);
+    const totalFutil = GASTOS.filter(g=>g.tipo==="futil").reduce((s,g)=> s + g.valor, 0);
+
+    totalGeralEl.textContent = fmt(totalGeral);
+    totalObrigEl.textContent = fmt(totalObrig);
+    totalFutilEl.textContent = fmt(totalFutil);
+
+    const agora = new Date();
+    const totalMes = GASTOS
+      .filter(g=>{
+        const d = new Date(g.data);
+        return d.getMonth()===agora.getMonth() && d.getFullYear()===agora.getFullYear();
+      })
+      .reduce((s,g)=> s + g.valor, 0);
+    totalMesEl.textContent = fmt(totalMes);
+
+    let lista = [...GASTOS].sort((a,b)=> new Date(b.data) - new Date(a.data));
+    if(filtroAtivo !== "todos"){
+      lista = lista.filter(g => g.tipo === filtroAtivo);
+    }
+
+    if(lista.length === 0){
+      entriesList.innerHTML = `<div class="empty">${GASTOS.length===0 ? "Nenhum gasto lançado ainda.<br>Adiciona o primeiro no formulário acima." : "Nenhum gasto nesse filtro."}</div>`;
+      return;
+    }
+
+    entriesList.innerHTML = lista.map(g => `
+      <div class="entry">
+        <div class="left">
+          <div class="top-row">
+            <span class="badge ${g.tipo==='obrigatorio'?'obrig':'futil'}">${g.tipo==='obrigatorio'?'Obrigatório':'Fútil'}</span>
+          </div>
+          <div class="motivo">${g.motivo}</div>
+          <div class="data">${fmtData(g.data)}</div>
+        </div>
+        <div class="right">
+          <span class="valor">${fmt(g.valor)}</span>
+          <button class="del" data-id="${g.id}">✕</button>
+        </div>
+      </div>
+    `).join("");
+
+    entriesList.querySelectorAll(".del").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        if(btn.dataset.confirm !== "1"){
+          btn.dataset.confirm = "1";
+          btn.classList.add("confirming");
+          setTimeout(()=>{ btn.dataset.confirm = "0"; btn.classList.remove("confirming"); }, 2500);
+          return;
+        }
+        GASTOS = GASTOS.filter(g => g.id !== btn.dataset.id);
+        saveGastos();
+        render();
+      });
+    });
+  }
+
+  form.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    formError.style.display = "none";
+
+    const valor = parseFloat(document.getElementById("fValor").value);
+    const motivo = document.getElementById("fMotivo").value.trim();
+
+    if(isNaN(valor) || valor <= 0 || !motivo || !tipoSelecionado){
+      formError.textContent = !tipoSelecionado
+        ? "Escolhe se o gasto é Obrigatório ou Fútil."
+        : "Preenche o valor e o motivo antes de adicionar.";
+      formError.style.display = "block";
+      return;
+    }
+
+    GASTOS.push({
+      id: "g" + Date.now() + Math.random().toString(36).slice(2,7),
+      valor, motivo, tipo: tipoSelecionado,
+      data: new Date().toISOString()
+    });
+
+    const ok = saveGastos();
+    if(!ok){
+      formError.textContent = "Não consegui salvar. O celular pode estar sem espaço de armazenamento.";
+      formError.style.display = "block";
+      GASTOS.pop();
+      return;
+    }
+
+    form.reset();
+    tipoSelecionado = null;
+    btnObrig.classList.remove("active");
+    btnFutil.classList.remove("active");
+    document.getElementById("fValor").focus();
+    render();
+  });
+
+  loadGastos();
+  render();
+
+})();
+</script>
+</body>
+</html>
