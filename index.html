@@ -285,7 +285,55 @@
 
 <footer class="border-t py-6 text-center" style="border-color:var(--line)">
   <p class="text-[11px] font-mono" style="color:var(--text-faint)">Garimpo &middot; Feito pra te ajudar a encontrar o melhor preço &middot; Pode conter links de afiliado, sem custo extra pra você</p>
+  <button id="whyTrustBtn" class="mt-2.5 text-[11px] font-mono underline underline-offset-2 hover:opacity-80 transition" style="color:var(--text-faint)">Por que confiar no Garimpo</button>
 </footer>
+
+<!-- ============ MODAL "POR QUE CONFIAR" ============ -->
+<div id="whyTrustModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style="background:rgba(0,0,0,0.65)">
+  <div class="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl card max-h-[88vh] overflow-y-auto">
+    <div class="relative p-6 sm:p-7">
+      <button id="closeWhyTrustBtn" class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center card-soft" style="border:1px solid var(--line)">✕</button>
+
+      <h2 class="font-display font-bold text-2xl leading-snug pr-8" style="color:var(--gold-bright)">Por que confiar no Garimpo</h2>
+
+      <p class="text-sm mt-4 leading-relaxed" style="color:var(--text)">A gente não é o maior site de promoções que você vai encontrar. E é exatamente por isso que dá pra confiar.</p>
+
+      <p class="text-sm mt-3 leading-relaxed" style="color:var(--text)">Aqui não tem robô cuspindo lista de "ofertas" sem ninguém checar se são reais. Não tem preço riscado inventado só pra parecer desconto. Não tem produto empurrado porque pagaram mais caro pra aparecer primeiro.</p>
+
+      <p class="text-sm mt-3 leading-relaxed" style="color:var(--text)">Tem uma pessoa só, testando, comparando e conferindo cada achado antes de publicar. Se apareceu aqui, é porque alguém garantiu que vale — não porque um algoritmo decidiu sozinho.</p>
+
+      <p class="text-sm font-semibold mt-5" style="color:var(--text)">O que a gente garante em cada visita:</p>
+
+      <div class="space-y-3 mt-3">
+        <div class="flex gap-3">
+          <span class="text-lg shrink-0">🔍</span>
+          <div>
+            <p class="text-sm font-semibold" style="color:var(--text)">Preço comparado de verdade</p>
+            <p class="text-[13px] mt-0.5 leading-relaxed" style="color:var(--text-dim)">Todo valor riscado que você vê aqui foi pesquisado na mesma loja, no mesmo produto — nunca inventado. Se não tem economia real, não vira "promoção".</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-lg shrink-0">🛒</span>
+          <div>
+            <p class="text-sm font-semibold" style="color:var(--text)">Sempre lojas oficiais</p>
+            <p class="text-[13px] mt-0.5 leading-relaxed" style="color:var(--text-dim)">Todo link leva direto pra Mercado Livre, Shopee ou outra loja conhecida. Nunca pra site desconhecido, nunca pra risco de golpe.</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-lg shrink-0">🤝</span>
+          <div>
+            <p class="text-sm font-semibold" style="color:var(--text)">Curadoria manual, sem pressa</p>
+            <p class="text-[13px] mt-0.5 leading-relaxed" style="color:var(--text-dim)">Cada produto passou pelos olhos de alguém antes de entrar no site. Não é volume, é confiança — preferimos publicar menos e certo, do que muito e duvidoso.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-sm mt-5 leading-relaxed" style="color:var(--text)">A gente não ganha nada te vendendo qualquer coisa. A gente ganha te mostrando o que realmente vale a pena — porque é assim que você volta.</p>
+
+      <p class="font-display font-semibold text-base mt-5" style="color:var(--gold-bright)">Garimpo. Cada visita, um achado.</p>
+    </div>
+  </div>
+</div>
 
 <!-- ============ BOLINHAS FLUTUANTES DE SCROLL ============ -->
 <div class="fixed bottom-5 right-5 z-30 flex flex-col gap-2.5">
@@ -868,6 +916,15 @@
   scrollUpFab.addEventListener("click", ()=>{
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+
+  const whyTrustModal = document.getElementById("whyTrustModal");
+  document.getElementById("whyTrustBtn").addEventListener("click", ()=>{
+    whyTrustModal.classList.remove("hidden");
+  });
+  document.getElementById("closeWhyTrustBtn").addEventListener("click", ()=>{
+    whyTrustModal.classList.add("hidden");
+  });
+  whyTrustModal.addEventListener("click", (e)=>{ if(e.target===whyTrustModal) whyTrustModal.classList.add("hidden"); });
 
   const refreshBtn = document.getElementById("refreshBtn");
   const refreshIcon = document.getElementById("refreshIcon");
