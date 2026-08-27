@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpo — Libere seu bônus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#16120E; --panel:#1F1912; --panel-2:#2A2118; --line:#3A2F22;
+    --text:#F2ECE1; --text-dim:#A99A85; --text-faint:#6E6151;
+    --gold:#D4A24C; --gold-bright:#F0C674;
+    --savings:#4F9B6E; --savings-bright:#6BBE8C;
+    --urgency-bright:#F4703F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 550px at 85% -5%, rgba(212,162,76,.10), transparent 60%),
+      radial-gradient(700px 500px at 5% 10%, rgba(79,155,110,.06), transparent 55%),
+      var(--void);
+    color:var(--text);
+    font-family:'Inter',Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  }
+  .wrap{width:100%; max-width:420px;}
+  .brand{text-align:center; margin-bottom:18px;}
+  .brand span{font-family:'Fraunces',Georgia,serif; font-weight:900; font-size:22px; color:var(--gold-bright);}
+
+  .dots{display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:18px;}
+  .dot{width:7px; height:7px; border-radius:999px; background:var(--line); transition:all .2s ease;}
+  .dot.active{background:var(--gold-bright); width:20px; border-radius:999px;}
+  .dot.done{background:var(--gold);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:26px 24px;}
+
+  .eyebrow{font-family:'JetBrains Mono',monospace,monospace; font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin:0 0 8px 0;}
+  h1,h2{font-family:'Fraunces',Georgia,serif; font-weight:700; line-height:1.25; margin:0 0 10px 0; color:var(--text);}
+  h1{font-size:23px;} h2{font-size:20px;}
+  p{margin:0 0 10px 0; line-height:1.55;}
+  .dim{color:var(--text-dim); font-size:14px;}
+  .faint{color:var(--text-faint); font-size:11px;}
+
+  .field{margin-top:14px;}
+  .field label{display:block; font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:5px;}
+  .field input[type=text], .field input[type=email]{
+    width:100%; border-radius:10px; padding:11px 14px; font-size:14px;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text); font-family:inherit;
+  }
+  .field input::placeholder{color:var(--text-faint);}
+  .field input:focus{outline:none; border-color:var(--gold);}
+
+  .consent{display:flex; align-items:flex-start; gap:8px; margin-top:16px; font-size:11px; color:var(--text-faint);}
+  .consent input{margin-top:2px;}
+
+  .stack{margin-top:20px;}
+  .stack > * + *{margin-top:10px;}
+
+  .opt-btn{
+    display:block; width:100%; text-align:left; border-radius:12px; padding:13px 16px;
+    font-size:14px; font-family:inherit; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line); cursor:pointer; transition:all .15s ease;
+  }
+  .opt-btn:hover{border-color:var(--gold); background:rgba(212,162,76,.10);}
+  .opt-btn.selected{border-color:var(--gold); background:rgba(212,162,76,.18);}
+
+  .btn{
+    display:block; width:100%; text-align:center; border-radius:12px; padding:13px 16px;
+    font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; border:none; text-decoration:none;
+    margin-top:20px;
+  }
+  .btn-primary{background:var(--gold); color:var(--void);}
+  .btn-primary:hover{opacity:.9;}
+  .btn-primary:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-outline{background:var(--panel-2); border:1px solid var(--gold); color:var(--gold-bright); margin-top:0;}
+
+  .error-msg{font-size:12px; color:var(--urgency-bright); margin-top:12px; display:none;}
+  .error-msg.show{display:block;}
+
+  .success-icon{width:56px; height:56px; border-radius:16px; margin:0 auto 16px auto; display:flex; align-items:center; justify-content:center; background:rgba(79,155,110,.18);}
+
+  .spinner{width:16px; height:16px; border:2px solid var(--void); border-top-color:transparent; border-radius:999px; display:inline-block; animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .fade{animation:fade .3s ease both;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .footnote{text-align:center; font-size:11px; color:var(--text-faint); margin-top:16px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand"><span>Garimpo</span></div>
+  <div class="dots" id="progressDots"></div>
+  <div class="card" id="cardWrap"></div>
+  <p class="footnote">Garimpo &middot; seus dados usados só pra te enviar o bônus e novidades do canal</p>
+</div>
+
+<!-- formulário oculto + iframe: usados só pra enviar os dados ao Apps Script
+     sem esbarrar em bloqueio de CORS entre domínios diferentes -->
+<iframe name="hiddenIframeTarget" id="hiddenIframe" style="display:none;"></iframe>
+<form id="hiddenForm" target="hiddenIframeTarget" method="POST" style="display:none;">
+  <input type="hidden" name="nome" id="fNome">
+  <input type="hidden" name="email" id="fEmail">
+  <input type="hidden" name="resposta1" id="fR1">
+  <input type="hidden" name="resposta2" id="fR2">
+  <input type="hidden" name="resposta3" id="fR3">
+  <input type="hidden" name="resposta4" id="fR4">
+</form>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =====================================================================
+     CONFIGURAÇÃO — preencha antes de publicar
+  ===================================================================== */
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8CH1qfMsb2L1vzSKHNDeG8-n0WpmmjpNVGdhy6tvH7-LHRcFU1RVZlHPazqvlIrPr/exec";
+  const TELEGRAM_LINK = "https://t.me/garimpo_oficial";
+  /* ===================================================================== */
+
+  const QUESTIONS = [
+    {
+      q: "O que mais te chamou atenção nesse material?",
+      options: ["Quero economizar mais", "Quero uma renda extra", "Quero organizar minha rotina/bem-estar", "Curiosidade sobre IA"]
+    },
+    {
+      q: "Você já usa alguma ferramenta de IA no dia a dia?",
+      options: ["Sim, uso todo dia", "Uso às vezes", "Essa é minha primeira vez ouvindo falar", "Não sei bem o que é"]
+    },
+    {
+      q: "O que mais te impede de organizar isso hoje?",
+      options: ["Falta de tempo", "Não sei por onde começar", "Falta de dinheiro sobrando", "Falta de constância"]
+    },
+    {
+      q: "Se pudesse resolver 1 coisa agora, qual seria?",
+      options: ["Economia / finanças", "Renda extra", "Estética / saúde", "Outra coisa"]
+    }
+  ];
+
+  let state = { nome:"", email:"", respostas:[] };
+  let step = 0; // 0 = boas-vindas, 1..N = perguntas, N+1 = final
+  const totalSteps = 2 + QUESTIONS.length;
+
+  const cardWrap = document.getElementById("cardWrap");
+  const progressDots = document.getElementById("progressDots");
+
+  function renderDots(){
+    const dotsCount = totalSteps;
+    const current = Math.min(step, dotsCount - 1);
+    progressDots.innerHTML = Array.from({length: dotsCount}).map((_,i)=>{
+      const cls = i === current ? "active" : (i < current ? "done" : "");
+      return `<span class="dot ${cls}"></span>`;
+    }).join("");
+  }
+
+  function render(){
+    renderDots();
+    if(step === 0) return renderWelcome();
+    if(step >= 1 && step <= QUESTIONS.length) return renderQuestion(step - 1);
+    if(step === QUESTIONS.length + 1) return renderFinal();
+  }
+
+  function renderWelcome(){
+    cardWrap.innerHTML = `
+      <div class="fade">
+        <p class="eyebrow">Bônus liberado no e-book</p>
+        <h1>Antes de liberar seu pacote de prompts...</h1>
+        <p class="dim">4 perguntinhas rápidas (uns 30 segundos) pra eu te mandar conteúdo que faça sentido pra você. Depois é só liberar o bônus.</p>
+
+        <div class="field">
+          <label>Seu nome</label>
+          <input id="inputNome" type="text" placeholder="Como posso te chamar?">
+        </div>
+        <div class="field">
+          <label>Seu e-mail</label>
+          <input id="inputEmail" type="email" placeholder="seuemail@exemplo.com">
+        </div>
+
+        <label class="consent">
+          <input id="inputConsent" type="checkbox">
+          <span>Aceito receber o bônus e novidades do Garimpo por e-mail. Pode cancelar quando quiser.</span>
+        </label>
+
+        <p id="welcomeError" class="error-msg"></p>
+
+        <button id="btnStart" class="btn btn-primary">Começar</button>
+      </div>
+    `;
+    document.getElementById("btnStart").addEventListener("click", ()=>{
+      const nome = document.getElementById("inputNome").value.trim();
+      const email = document.getElementById("inputEmail").value.trim();
+      const consent = document.getElementById("inputConsent").checked;
+      const errEl = document.getElementById("welcomeError");
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if(!emailOk){ errEl.textContent = "Digite um e-mail válido pra receber o bônus."; errEl.classList.add("show"); return; }
+      if(!consent){ errEl.textContent = "Precisa marcar a caixinha pra continuar."; errEl.classList.add("show"); return; }
+      state.nome = nome; state.email = email;
+      step = 1; render();
+    });
+  }
+
+  function renderQuestion(idx){
+    const item = QUESTIONS[idx];
+    cardWrap.innerHTML = `
+      <div class="fade">
+        <p class="eyebrow">Pergunta ${idx+1} de ${QUESTIONS.length}</p>
+        <h2>${item.q}</h2>
+        <div class="stack" id="optsWrap">
+          ${item.options.map((opt,i)=>`<button data-i="${i}" class="opt-btn">${opt}</button>`).join("")}
+        </div>
+      </div>
+    `;
+    cardWrap.querySelectorAll("[data-i]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        cardWrap.querySelectorAll("[data-i]").forEach(b=>b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.respostas[idx] = item.options[Number(btn.dataset.i)];
+        setTimeout(()=>{ step += 1; render(); }, 200);
+      });
+    });
+  }
+
+  function renderFinal(){
+    cardWrap.innerHTML = `
+      <div class="fade">
+        <p class="eyebrow">Última etapa</p>
+        <h2>Falta só um passo pra liberar seu pacote de prompts</h2>
+        <p class="dim">Entre no canal do Garimpo no Telegram — é lá que saem as ofertas conferidas todo dia. Depois, é só apertar em liberar acesso.</p>
+
+        <a id="btnTelegram" href="${TELEGRAM_LINK}" target="_blank" rel="noopener" class="btn btn-outline">1. Entrar no canal do Telegram</a>
+        <button id="btnLiberar" class="btn btn-primary">2. Já entrei — Liberar meu acesso</button>
+
+        <p id="finalError" class="error-msg" style="text-align:center;"></p>
+      </div>
+    `;
+    document.getElementById("btnLiberar").addEventListener("click", enviarLead);
+  }
+
+  async function enviarLead(){
+    const btn = document.getElementById("btnLiberar");
+    const errEl = document.getElementById("finalError");
+    errEl.classList.remove("show");
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.innerHTML = `<span class="spinner"></span>`;
+
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("COLE_AQUI")){
+      btn.disabled = false;
+      btn.textContent = originalText;
+      errEl.textContent = "O link de envio ainda não foi configurado nesta página (APPS_SCRIPT_URL).";
+      errEl.classList.add("show");
+      return;
+    }
+
+    // Envio via formulário oculto + iframe, em vez de fetch().
+    // Isso evita problemas de CORS que ocorrem quando se chama um Apps Script
+    // Web App via fetch() a partir de outro domínio (garimpo.net.br chamando
+    // script.google.com) — o navegador bloqueia a leitura da resposta em vários
+    // cenários. Com formulário + iframe, o navio nunca precisa "ler" a resposta
+    // entre domínios, só confirmar que o carregamento terminou.
+    try{
+      document.getElementById("fNome").value = state.nome;
+      document.getElementById("fEmail").value = state.email;
+      document.getElementById("fR1").value = state.respostas[0] || "";
+      document.getElementById("fR2").value = state.respostas[1] || "";
+      document.getElementById("fR3").value = state.respostas[2] || "";
+      document.getElementById("fR4").value = state.respostas[3] || "";
+
+      const iframe = document.getElementById("hiddenIframe");
+      let jaResolveu = false;
+
+      const finalizar = () => {
+        if(jaResolveu) return;
+        jaResolveu = true;
+        renderSuccess();
+      };
+
+      iframe.addEventListener("load", finalizar, { once: true });
+      // Rede de segurança: se por algum motivo o evento "load" do iframe não
+      // disparar em algum navegador, ainda assim liberamos a tela de sucesso
+      // depois de um tempo razoável, pra não deixar a pessoa travada no spinner.
+      setTimeout(finalizar, 4000);
+
+      document.getElementById("hiddenForm").submit();
+    }catch(err){
+      btn.disabled = false;
+      btn.textContent = originalText;
+      errEl.textContent = "Não consegui enviar agora. Tenta de novo em alguns segundos.";
+      errEl.classList.add("show");
+    }
+  }
+
+  function renderSuccess(){
+    cardWrap.innerHTML = `
+      <div class="fade" style="text-align:center; padding:8px 0;">
+        <div class="success-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6BBE8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h2>Prontinho!</h2>
+        <p class="dim">Mandamos o pacote de prompts pro seu e-mail <strong style="color:var(--text)">${state.email}</strong>. Dá uma olhada na caixa de spam também, só por garantia.</p>
+      </div>
+    `;
+  }
+
+  render();
+
+  // define o destino do formulário oculto com a URL configurada acima
+  const hiddenForm = document.getElementById("hiddenForm");
+  if(APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes("COLE_AQUI")){
+    hiddenForm.action = APPS_SCRIPT_URL;
+  }
+})();
+</script>
+</body>
+</html>
