@@ -104,5 +104,30 @@
   <p class="footnote">Garimpo &middot; curadoria de ofertas, sem robô, sem lista automática</p>
 </div>
 
+<script>
+(function(){
+  "use strict";
+  // Repassa os parâmetros de UTM que essa página recebeu (ex: vindos do
+  // link colocado na bio do Instagram) pros links de destino que apontam
+  // pro seu próprio domínio (site e quiz). Isso permite ver no Google
+  // Analytics de qual rede social cada visita realmente veio.
+  // Não repassa pro link do Telegram porque UTM não é rastreado lá.
+  const params = new URLSearchParams(window.location.search);
+  const chavesUtm = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"];
+  const parametrosPresentes = chavesUtm.filter(k => params.has(k));
+
+  if(parametrosPresentes.length === 0) return;
+
+  document.querySelectorAll(".link-btn").forEach(link => {
+    try{
+      const url = new URL(link.href);
+      if(!url.hostname.includes("garimpo.net.br")) return; // pula o Telegram
+      parametrosPresentes.forEach(k => url.searchParams.set(k, params.get(k)));
+      link.href = url.toString();
+    }catch(e){ /* link inválido, ignora */ }
+  });
+})();
+</script>
+
 </body>
 </html>
