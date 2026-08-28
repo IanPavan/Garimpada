@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpo — Links</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#16120E; --panel:#1F1912; --panel-2:#2A2118; --line:#3A2F22;
+    --text:#F2ECE1; --text-dim:#A99A85; --text-faint:#6E6151;
+    --gold:#D4A24C; --gold-bright:#F0C674;
+    --savings:#4F9B6E; --savings-bright:#6BBE8C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 550px at 85% -5%, rgba(212,162,76,.10), transparent 60%),
+      radial-gradient(700px 500px at 5% 10%, rgba(79,155,110,.06), transparent 55%),
+      var(--void);
+    color:var(--text);
+    font-family:'Inter',Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .wrap{width:100%; max-width:400px; text-align:center;}
+
+  .avatar{
+    width:84px; height:84px; border-radius:999px; margin:0 auto 16px auto;
+    background:var(--panel-2); border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; font-size:34px;
+  }
+  .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+
+  h1{font-family:'Fraunces',Georgia,serif; font-weight:900; font-size:24px; color:var(--gold-bright); margin:0 0 4px 0;}
+  .tagline{font-size:13px; color:var(--text-dim); margin:0 0 28px 0;}
+
+  .links{display:flex; flex-direction:column; gap:12px;}
+
+  .link-btn{
+    display:flex; align-items:center; gap:12px; text-align:left;
+    border-radius:14px; padding:16px 18px; text-decoration:none;
+    border:1px solid var(--line); transition:transform .15s ease, border-color .15s ease;
+  }
+  .link-btn:hover{transform:translateY(-2px);}
+  .link-icon{font-size:20px; flex-shrink:0;}
+  .link-text{flex:1;}
+  .link-title{font-weight:700; font-size:14.5px; color:var(--text); display:block;}
+  .link-sub{font-size:11.5px; color:var(--text-faint); display:block; margin-top:2px;}
+
+  .link-primary{background:var(--gold); border-color:var(--gold);}
+  .link-primary .link-title{color:var(--void);}
+  .link-primary .link-sub{color:rgba(22,18,14,.65);}
+  .link-primary:hover{border-color:var(--gold-bright);}
+
+  .link-secondary{background:var(--panel);}
+  .link-secondary:hover{border-color:var(--gold);}
+
+  .footnote{margin-top:28px; font-size:11px; color:var(--text-faint);}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="avatar">
+    <img src="https://garimpo.net.br/mascote.png" alt="Garimpo" onerror="this.style.display='none'; this.parentElement.textContent='⛏️';">
+  </div>
+
+  <h1>Garimpo</h1>
+  <p class="tagline">Ache o preço, não a sorte</p>
+
+  <div class="links">
+    <a class="link-btn link-primary" href="https://t.me/garimpo_oficial" target="_blank" rel="noopener">
+      <span class="link-icon">📦</span>
+      <span class="link-text">
+        <span class="link-title">Ofertas verificadas todo dia</span>
+        <span class="link-sub">Entrar no canal do Telegram</span>
+      </span>
+    </a>
+
+    <a class="link-btn link-secondary" href="https://garimpo.net.br/quiz.html" target="_blank" rel="noopener">
+      <span class="link-icon">🎁</span>
+      <span class="link-text">
+        <span class="link-title">30 prompts prontos pra usar agora</span>
+        <span class="link-sub">Copie, cole e resolva — grátis</span>
+      </span>
+    </a>
+
+    <a class="link-btn link-secondary" href="https://garimpo.net.br" target="_blank" rel="noopener">
+      <span class="link-icon">🔍</span>
+      <span class="link-text">
+        <span class="link-title">Veja todos os achados</span>
+        <span class="link-sub">garimpo.net.br</span>
+      </span>
+    </a>
+  </div>
+
+  <p class="footnote">Garimpo &middot; curadoria de ofertas, sem robô, sem lista automática</p>
+</div>
+
+</body>
+</html>
