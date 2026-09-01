@@ -34,6 +34,36 @@
   header{ padding:24px 20px 16px; text-align:center; }
   header h1{ font-size:15px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin:0; }
 
+  /* ===== NAVEGADOR DE MÊS ===== */
+  .month-nav{
+    display:flex; align-items:center; justify-content:center; gap:4px;
+    max-width:520px; margin:0 auto; padding:0 16px 16px;
+  }
+  .month-nav-inner{
+    display:flex; align-items:center; gap:6px; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px; padding:6px 8px;
+  }
+  .month-nav-arrow{
+    width:34px; height:34px; border-radius:10px; border:none; background:var(--panel-2);
+    color:var(--text-dim); font-size:16px; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; transition:all .15s ease; flex-shrink:0;
+  }
+  .month-nav-arrow:active{ transform:scale(0.92); }
+  .month-nav-label{
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px;
+    color:var(--text); padding:0 10px; min-width:150px; text-align:center;
+    cursor:pointer; background:none; border:none; user-select:none;
+  }
+  .month-nav-today{
+    font-size:11px; font-weight:700; color:var(--text-faint); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer;
+    transition:all .15s ease; white-space:nowrap; margin-left:6px;
+  }
+  .month-nav-today:active{ transform:scale(0.95); }
+  #monthPicker{
+    position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;
+  }
+
   /* ===== RESUMO ===== */
   .summary{ padding:0 16px 20px; max-width:520px; margin:0 auto; }
   .total-geral{
@@ -126,9 +156,19 @@
 
 <header><h1>Controle de Gastos</h1></header>
 
+<div class="month-nav">
+  <div class="month-nav-inner">
+    <button class="month-nav-arrow" id="prevMonthBtn" aria-label="Mês anterior">‹</button>
+    <button class="month-nav-label" id="monthLabel"></button>
+    <button class="month-nav-arrow" id="nextMonthBtn" aria-label="Próximo mês">›</button>
+  </div>
+  <button class="month-nav-today" id="todayBtn" style="display:none;">Hoje</button>
+  <input type="month" id="monthPicker">
+</div>
+
 <div class="summary">
   <div class="total-geral">
-    <div class="label">Total geral</div>
+    <div class="label">Total do mês</div>
     <div class="value font-mono" id="totalGeral">R$ 0,00</div>
   </div>
   <div class="sub-totals">
@@ -141,7 +181,7 @@
       <div class="value" id="totalFutil">R$ 0,00</div>
     </div>
   </div>
-  <div class="mes-total">Este mês: <b id="totalMes">R$ 0,00</b></div>
+  <div class="mes-total" id="hojeRow">Hoje: <b id="totalMes">R$ 0,00</b></div>
 </div>
 
 <div class="form-wrap">
@@ -183,6 +223,10 @@
   let tipoSelecionado = null;
   let filtroAtivo = "todos";
 
+  const hoje = new Date();
+  let anoSelecionado = hoje.getFullYear();
+  let mesSelecionado = hoje.getMonth(); // 0-11
+
   const fmt = (n)=> n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   const fmtData = (iso)=> new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}) + " às " + new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
@@ -190,11 +234,17 @@
   const totalObrigEl = document.getElementById("totalObrig");
   const totalFutilEl = document.getElementById("totalFutil");
   const totalMesEl = document.getElementById("totalMes");
+  const hojeRowEl = document.getElementById("hojeRow");
   const entriesList = document.getElementById("entriesList");
   const form = document.getElementById("gastoForm");
   const formError = document.getElementById("formError");
   const btnObrig = document.getElementById("btnObrig");
   const btnFutil = document.getElementById("btnFutil");
+  const monthLabel = document.getElementById("monthLabel");
+  const prevMonthBtn = document.getElementById("prevMonthBtn");
+  const nextMonthBtn = document.getElementById("nextMonthBtn");
+  const todayBtn = document.getElementById("todayBtn");
+  const monthPicker = document.getElementById("monthPicker");
 
   function loadGastos(){
     try{
@@ -228,6 +278,56 @@
     btnObrig.classList.remove("active");
   });
 
+  /* ===== navegador de mês ===== */
+  const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+
+  function atualizarMonthNav(){
+    const nome = NOMES_MES[mesSelecionado];
+    monthLabel.textContent = nome.charAt(0).toUpperCase() + nome.slice(1) + " de " + anoSelecionado;
+
+    const ehMesAtual = anoSelecionado === hoje.getFullYear() && mesSelecionado === hoje.getMonth();
+    todayBtn.style.display = ehMesAtual ? "none" : "block";
+    hojeRowEl.style.display = ehMesAtual ? "block" : "none";
+
+    // mantém o input[type=month] sincronizado, pra abrir já no mês certo
+    const mm = String(mesSelecionado + 1).padStart(2, "0");
+    monthPicker.value = anoSelecionado + "-" + mm;
+  }
+
+  function irParaMes(ano, mes){
+    anoSelecionado = ano;
+    mesSelecionado = mes;
+    atualizarMonthNav();
+    render();
+  }
+
+  prevMonthBtn.addEventListener("click", ()=>{
+    mesSelecionado--;
+    if(mesSelecionado < 0){ mesSelecionado = 11; anoSelecionado--; }
+    irParaMes(anoSelecionado, mesSelecionado);
+  });
+
+  nextMonthBtn.addEventListener("click", ()=>{
+    mesSelecionado++;
+    if(mesSelecionado > 11){ mesSelecionado = 0; anoSelecionado++; }
+    irParaMes(anoSelecionado, mesSelecionado);
+  });
+
+  todayBtn.addEventListener("click", ()=>{
+    irParaMes(hoje.getFullYear(), hoje.getMonth());
+  });
+
+  monthLabel.addEventListener("click", ()=>{
+    if(monthPicker.showPicker){ monthPicker.showPicker(); }
+    else{ monthPicker.click(); }
+  });
+
+  monthPicker.addEventListener("change", ()=>{
+    if(!monthPicker.value) return;
+    const [ano, mes] = monthPicker.value.split("-").map(Number);
+    irParaMes(ano, mes - 1);
+  });
+
   /* ===== filtros ===== */
   document.querySelectorAll(".filter-btn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -239,30 +339,34 @@
   });
 
   function render(){
-    const totalGeral = GASTOS.reduce((s,g)=> s + g.valor, 0);
-    const totalObrig = GASTOS.filter(g=>g.tipo==="obrigatorio").reduce((s,g)=> s + g.valor, 0);
-    const totalFutil = GASTOS.filter(g=>g.tipo==="futil").reduce((s,g)=> s + g.valor, 0);
+    const gastosDoMes = GASTOS.filter(g=>{
+      const d = new Date(g.data);
+      return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
+    });
+
+    const totalGeral = gastosDoMes.reduce((s,g)=> s + g.valor, 0);
+    const totalObrig = gastosDoMes.filter(g=>g.tipo==="obrigatorio").reduce((s,g)=> s + g.valor, 0);
+    const totalFutil = gastosDoMes.filter(g=>g.tipo==="futil").reduce((s,g)=> s + g.valor, 0);
 
     totalGeralEl.textContent = fmt(totalGeral);
     totalObrigEl.textContent = fmt(totalObrig);
     totalFutilEl.textContent = fmt(totalFutil);
 
-    const agora = new Date();
-    const totalMes = GASTOS
+    const totalHoje = gastosDoMes
       .filter(g=>{
         const d = new Date(g.data);
-        return d.getMonth()===agora.getMonth() && d.getFullYear()===agora.getFullYear();
+        return d.getDate()===hoje.getDate() && d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear();
       })
       .reduce((s,g)=> s + g.valor, 0);
-    totalMesEl.textContent = fmt(totalMes);
+    totalMesEl.textContent = fmt(totalHoje);
 
-    let lista = [...GASTOS].sort((a,b)=> new Date(b.data) - new Date(a.data));
+    let lista = [...gastosDoMes].sort((a,b)=> new Date(b.data) - new Date(a.data));
     if(filtroAtivo !== "todos"){
       lista = lista.filter(g => g.tipo === filtroAtivo);
     }
 
     if(lista.length === 0){
-      entriesList.innerHTML = `<div class="empty">${GASTOS.length===0 ? "Nenhum gasto lançado ainda.<br>Adiciona o primeiro no formulário acima." : "Nenhum gasto nesse filtro."}</div>`;
+      entriesList.innerHTML = `<div class="empty">${gastosDoMes.length===0 ? "Nenhum gasto lançado neste mês." : "Nenhum gasto nesse filtro, neste mês."}</div>`;
       return;
     }
 
@@ -331,10 +435,16 @@
     btnObrig.classList.remove("active");
     btnFutil.classList.remove("active");
     document.getElementById("fValor").focus();
+
+    // todo gasto novo é lançado com a data de hoje, então volta a visualização pro mês atual
+    anoSelecionado = hoje.getFullYear();
+    mesSelecionado = hoje.getMonth();
+    atualizarMonthNav();
     render();
   });
 
   loadGastos();
+  atualizarMonthNav();
   render();
 
 })();
