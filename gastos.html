@@ -150,7 +150,14 @@
   .entry .del:hover, .entry .del.confirming{ background:var(--danger); color:#fff; }
 
   .empty{ text-align:center; padding:40px 20px; color:var(--text-faint); font-size:13px; line-height:1.6; }
+  .pdf-wrap{ padding:24px 16px 40px; max-width:520px; margin:0 auto; }
+  .pdf-btn{ width:100%; padding:15px; border-radius:12px; border:1px solid var(--line);
+    background:var(--panel); color:var(--text); font-weight:700; font-size:15px; cursor:pointer; }
+  .pdf-btn:active{ transform:scale(0.98); }
+  .pdf-msg{ text-align:center; font-size:12px; color:var(--text-dim); margin-top:8px; min-height:16px; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -213,6 +220,11 @@
 </div>
 
 <div class="entries" id="entriesList"></div>
+
+<div class="pdf-wrap">
+  <button type="button" class="pdf-btn" id="pdfBtn">Gerar extrato PDF do mês</button>
+  <p class="pdf-msg" id="pdfMsg"></p>
+</div>
 
 <script>
 (function(){
@@ -442,6 +454,116 @@
     atualizarMonthNav();
     render();
   });
+
+  /* ===== extrato PDF do mês ===== */
+  const pdfBtn = document.getElementById("pdfBtn");
+  const pdfMsg = document.getElementById("pdfMsg");
+  const brl = (n)=> fmt(n).replace(/\u00a0/g, " ");
+  const limpa = (t)=> String(t).replace(/[^\u0000-\u00ff\u2013\u2014]/g, "").trim() || "-";
+
+  function gerarExtratoPDF(){
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      pdfMsg.textContent = "Não consegui carregar o gerador de PDF. Confira a internet e tente de novo.";
+      return;
+    }
+    const doMes = GASTOS.filter(g=>{
+      const d = new Date(g.data);
+      return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
+    }).sort((a,b)=> new Date(a.data) - new Date(b.data));
+    if(doMes.length === 0){ pdfMsg.textContent = "Nenhum gasto neste mês para gerar o extrato."; return; }
+
+    const obrig = doMes.filter(g=>g.tipo==="obrigatorio");
+    const futil = doMes.filter(g=>g.tipo==="futil");
+    const soma = (l)=> l.reduce((s,g)=> s + g.valor, 0);
+    const tot = soma(doMes), tObrig = soma(obrig), tFutil = soma(futil);
+    const pct = (v)=> tot ? (v/tot*100).toFixed(1).replace(".", ",") + "%" : "0%";
+    const nomeMes = NOMES_MES[mesSelecionado].charAt(0).toUpperCase() + NOMES_MES[mesSelecionado].slice(1) + " de " + anoSelecionado;
+    const diasNoMes = new Date(anoSelecionado, mesSelecionado + 1, 0).getDate();
+    const maior = doMes.reduce((m,g)=> g.valor > m.valor ? g : m, doMes[0]);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:"mm", format:"a4" });
+    const W = doc.internal.pageSize.getWidth();
+    const M = 15;
+    const TEAL = [29,140,126], AMBER = [196,124,8], DARK = [30,30,30], GREY = [110,110,110];
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(...DARK);
+    doc.text("Extrato de gastos", M, 20);
+    doc.setFont("helvetica","normal"); doc.setFontSize(12); doc.setTextColor(...GREY);
+    doc.text(nomeMes, M, 27);
+    doc.setFontSize(9);
+    doc.text("Gerado em " + new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}), W - M, 20, { align:"right" });
+
+    doc.autoTable({
+      startY: 34,
+      head: [["Resumo do mês", "Valor", "% do total"]],
+      body: [
+        ["Gastos obrigatórios (" + obrig.length + ")", brl(tObrig), pct(tObrig)],
+        ["Gastos fúteis (" + futil.length + ")", brl(tFutil), pct(tFutil)],
+        ["Total do mês (" + doMes.length + " lançamentos)", brl(tot), "100%"],
+        ["Média por dia (" + diasNoMes + " dias)", brl(tot / diasNoMes), ""],
+        ["Maior gasto: " + limpa(maior.motivo), brl(maior.valor), pct(maior.valor)]
+      ],
+      theme: "grid",
+      headStyles: { fillColor: DARK, textColor: 255, fontStyle:"bold" },
+      columnStyles: { 1:{ halign:"right", cellWidth:35 }, 2:{ halign:"right", cellWidth:25 } },
+      styles: { fontSize:10, cellPadding:2.5 },
+      didParseCell: (d)=>{
+        if(d.section === "head" && d.column.index > 0) d.cell.styles.halign = "right";
+        if(d.section === "body" && d.row.index === 0 && d.column.index === 0) d.cell.styles.textColor = TEAL;
+        if(d.section === "body" && d.row.index === 1 && d.column.index === 0) d.cell.styles.textColor = AMBER;
+        if(d.section === "body" && d.row.index === 2) d.cell.styles.fontStyle = "bold";
+      },
+      margin: { left:M, right:M }
+    });
+
+    function secao(titulo, lista, cor, subtotal){
+      let y = doc.lastAutoTable.finalY + 10;
+      if(y > 260){ doc.addPage(); y = 20; }
+      doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...cor);
+      doc.text(titulo, M, y);
+      const body = lista.length
+        ? lista.map((g,i)=> [String(i+1), new Date(g.data).toLocaleDateString("pt-BR"), limpa(g.motivo), brl(g.valor)])
+        : [["", "", "Nenhum gasto lançado", ""]];
+      doc.autoTable({
+        startY: y + 3,
+        head: [["#", "Data", "Motivo", "Valor"]],
+        body,
+        foot: [["", "", "Subtotal (" + pct(subtotal) + " do mês)", brl(subtotal)]],
+        theme: "striped",
+        headStyles: { fillColor: cor, textColor: 255 },
+        footStyles: { fillColor: [240,240,240], textColor: DARK, fontStyle:"bold" },
+        columnStyles: { 0:{ cellWidth:10, textColor:GREY }, 1:{ cellWidth:26 }, 3:{ halign:"right", cellWidth:32 } },
+        styles: { fontSize:9.5, cellPadding:2.2 },
+        showFoot: "lastPage",
+        didParseCell: (d)=>{ if(d.column.index === 3 && d.section !== "body") d.cell.styles.halign = "right"; },
+        margin: { left:M, right:M }
+      });
+    }
+    secao("Gastos obrigatórios", obrig, TEAL, tObrig);
+    secao("Gastos fúteis", futil, AMBER, tFutil);
+
+    let y = doc.lastAutoTable.finalY + 10;
+    if(y > 270){ doc.addPage(); y = 20; }
+    doc.setDrawColor(...DARK); doc.setLineWidth(0.5); doc.line(M, y - 5, W - M, y - 5);
+    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...DARK);
+    doc.text("Total geral do mês", M, y + 1);
+    doc.text(brl(tot), W - M, y + 1, { align:"right" });
+
+    const n = doc.getNumberOfPages();
+    for(let i = 1; i <= n; i++){
+      doc.setPage(i);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...GREY);
+      doc.text("Controle de Gastos — " + nomeMes, M, 290);
+      doc.text("Página " + i + " de " + n, W - M, 290, { align:"right" });
+    }
+
+    const mm = String(mesSelecionado + 1).padStart(2, "0");
+    doc.save("extrato-gastos-" + anoSelecionado + "-" + mm + ".pdf");
+    pdfMsg.textContent = "Extrato de " + nomeMes + " gerado.";
+    setTimeout(()=>{ pdfMsg.textContent = ""; }, 5000);
+  }
+  pdfBtn.addEventListener("click", gerarExtratoPDF);
 
   loadGastos();
   atualizarMonthNav();
