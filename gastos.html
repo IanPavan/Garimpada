@@ -78,6 +78,11 @@
   .sub-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:13px 15px; }
   .sub-card .label{ font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-faint); display:flex; align-items:center; gap:6px; margin-bottom:4px; }
   .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; background:var(--c); }
+  .sub-card{ cursor:pointer; transition:transform .1s ease, border-color .15s ease; }
+  .sub-card:active{ transform:scale(0.97); }
+  .sub-card.selected{ border-color:var(--c); background:var(--cd); }
+  .total-geral .invest-line{ cursor:pointer; display:inline-block; padding:4px 10px; border-radius:8px; border:1px solid transparent; }
+  .total-geral .invest-line.selected{ border-color:var(--investimento); }
   .sub-card .value{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:var(--c); }
 
   .mes-total{ margin-top:10px; text-align:center; font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
@@ -284,7 +289,7 @@
     `<button type="button" class="toggle-btn${i>2?" wide":""}" data-tipo="${t}" style="${corVars(t)}">${TIPOS[t].nome}</button>`
   ).join("");
   $("subTotals").innerHTML = TIPOS_GASTO.map(t=>
-    `<div class="sub-card" style="${corVars(t)}"><div class="label"><span class="dot"></span>${TIPOS[t].nome}</div><div class="value" id="tot-${t}">R$ 0,00</div></div>`
+    `<div class="sub-card" data-tipo="${t}" style="${corVars(t)}"><div class="label"><span class="dot"></span>${TIPOS[t].nome}</div><div class="value" id="tot-${t}">R$ 0,00</div></div>`
   ).join("");
   $("filters").innerHTML = `<button class="filter-btn active" data-filter="todos">Todos</button>` +
     ordemBotoes.map(t=> `<button class="filter-btn" data-filter="${t}">${TIPOS[t].nome}</button>`).join("");
@@ -295,14 +300,25 @@
       document.querySelectorAll(".toggle-btn").forEach(b=> b.classList.toggle("active", b === btn));
     });
   });
+  function aplicarFiltro(f, rolar){
+    filtroAtivo = f;
+    document.querySelectorAll(".filter-btn").forEach(b=> b.classList.toggle("active", b.dataset.filter === f));
+    document.querySelectorAll(".sub-card").forEach(c=> c.classList.toggle("selected", c.dataset.tipo === f));
+    document.querySelector(".invest-line").classList.toggle("selected", f === "investimento");
+    const ativo = document.querySelector(`.filter-btn[data-filter="${f}"]`);
+    if(ativo) ativo.scrollIntoView({ block:"nearest", inline:"center" });
+    render();
+    if(rolar && f !== "todos") $("filters").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
   document.querySelectorAll(".filter-btn").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      filtroAtivo = btn.dataset.filter;
-      render();
-    });
+    btn.addEventListener("click", ()=> aplicarFiltro(filtroAtivo === btn.dataset.filter ? "todos" : btn.dataset.filter, false));
   });
+  /* tocar num cartão do resumo filtra a lista e desce até ela; tocar de novo volta pra "Todos" */
+  document.querySelectorAll(".sub-card").forEach(card=>{
+    card.addEventListener("click", ()=> aplicarFiltro(filtroAtivo === card.dataset.tipo ? "todos" : card.dataset.tipo, true));
+  });
+  document.querySelector(".invest-line").addEventListener("click", ()=>
+    aplicarFiltro(filtroAtivo === "investimento" ? "todos" : "investimento", true));
 
   /* ===== navegador de mês ===== */
   const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
