@@ -17,8 +17,7 @@
   :root{
     --bg:#0A0A0A; --panel:#161616; --panel-2:#1F1F1F; --line:#2A2A2A;
     --text:#F5F5F5; --text-dim:#9A9A9A; --text-faint:#5C5C5C;
-    --obrig:#3DD9C4; --obrig-dim:#1D3B37;
-    --futil:#F5A623; --futil-dim:#3D2E10;
+    --investimento:#8BD450;
     --danger:#E5484D;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -68,25 +67,20 @@
   .summary{ padding:0 16px 20px; max-width:520px; margin:0 auto; }
   .total-geral{
     background:var(--panel); border:1px solid var(--line); border-radius:20px;
-    padding:24px 20px; text-align:center; margin-bottom:12px;
+    padding:22px 20px 18px; text-align:center; margin-bottom:12px;
   }
   .total-geral .label{ font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px; }
   .total-geral .value{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:38px; }
+  .total-geral .invest-line{ margin-top:10px; font-size:12.5px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
+  .total-geral .invest-line b{ color:var(--investimento); }
 
   .sub-totals{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .sub-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
-  .sub-card .label{ font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
-  .sub-card.obrig .dot{ background:var(--obrig); }
-  .sub-card.futil .dot{ background:var(--futil); }
-  .sub-card .value{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:19px; }
-  .sub-card.obrig .value{ color:var(--obrig); }
-  .sub-card.futil .value{ color:var(--futil); }
+  .sub-card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:13px 15px; }
+  .sub-card .label{ font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-faint); display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; background:var(--c); }
+  .sub-card .value{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:var(--c); }
 
-  .mes-total{
-    margin-top:10px; text-align:center; font-size:12px; color:var(--text-dim);
-    font-family:'JetBrains Mono',monospace;
-  }
+  .mes-total{ margin-top:10px; text-align:center; font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
   .mes-total b{ color:var(--text); }
 
   /* ===== FORM ===== */
@@ -101,14 +95,14 @@
   .field input:focus{ outline:none; border-color:var(--text-dim); }
   .field input#fMotivo{ font-family:'Inter',sans-serif; font-size:16px; }
 
-  .toggle-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .toggle-group{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
   .toggle-btn{
-    padding:16px 10px; border-radius:12px; border:1.5px solid var(--line);
-    background:var(--panel-2); color:var(--text-dim); font-weight:700; font-size:14px;
+    grid-column:span 2; padding:14px 6px; border-radius:12px; border:1.5px solid var(--line);
+    background:var(--panel-2); color:var(--text-dim); font-weight:700; font-size:13px;
     cursor:pointer; transition:all .15s ease; text-align:center;
   }
-  .toggle-btn.active.obrig{ background:var(--obrig-dim); border-color:var(--obrig); color:var(--obrig); }
-  .toggle-btn.active.futil{ background:var(--futil-dim); border-color:var(--futil); color:var(--futil); }
+  .toggle-btn.wide{ grid-column:span 3; }
+  .toggle-btn.active{ background:var(--cd); border-color:var(--c); color:var(--c); }
 
   .add-btn{
     width:100%; margin-top:6px; padding:16px; border:none; border-radius:12px;
@@ -116,14 +110,14 @@
     cursor:pointer; transition:transform .1s ease, opacity .15s ease;
   }
   .add-btn:active{ transform:scale(0.98); }
-  .add-btn:disabled{ opacity:0.5; }
   .form-error{ font-size:12px; color:var(--danger); margin-top:10px; display:none; text-align:center; }
 
   /* ===== FILTRO ===== */
-  .filters{ display:flex; gap:8px; padding:4px 16px 14px; max-width:520px; margin:0 auto; }
+  .filters{ display:flex; gap:8px; padding:4px 16px 14px; max-width:520px; margin:0 auto; overflow-x:auto; scrollbar-width:none; }
+  .filters::-webkit-scrollbar{ display:none; }
   .filter-btn{
-    flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
-    color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s ease;
+    flex:0 0 auto; padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s ease; white-space:nowrap;
   }
   .filter-btn.active{ background:var(--panel-2); color:var(--text); border-color:var(--text-faint); }
 
@@ -136,9 +130,7 @@
   }
   .entry .left{ min-width:0; flex:1; }
   .entry .top-row{ display:flex; align-items:center; gap:7px; margin-bottom:3px; }
-  .entry .badge{ font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:5px; letter-spacing:0.04em; text-transform:uppercase; }
-  .entry .badge.obrig{ background:var(--obrig-dim); color:var(--obrig); }
-  .entry .badge.futil{ background:var(--futil-dim); color:var(--futil); }
+  .entry .badge{ font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:5px; letter-spacing:0.04em; text-transform:uppercase; background:var(--cd); color:var(--c); }
   .entry .motivo{ font-weight:600; font-size:14.5px; word-break:break-word; }
   .entry .data{ font-size:11.5px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; margin-top:3px; }
   .entry .right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
@@ -175,20 +167,12 @@
 
 <div class="summary">
   <div class="total-geral">
-    <div class="label">Total do mês</div>
-    <div class="value font-mono" id="totalGeral">R$ 0,00</div>
+    <div class="label">Gasto do mês</div>
+    <div class="value font-mono" id="totalGasto">R$ 0,00</div>
+    <div class="invest-line">Investido: <b id="totalInvest">R$ 0,00</b></div>
   </div>
-  <div class="sub-totals">
-    <div class="sub-card obrig">
-      <div class="label"><span class="dot"></span>Obrigatório</div>
-      <div class="value" id="totalObrig">R$ 0,00</div>
-    </div>
-    <div class="sub-card futil">
-      <div class="label"><span class="dot"></span>Fútil</div>
-      <div class="value" id="totalFutil">R$ 0,00</div>
-    </div>
-  </div>
-  <div class="mes-total" id="hojeRow">Hoje: <b id="totalMes">R$ 0,00</b></div>
+  <div class="sub-totals" id="subTotals"></div>
+  <div class="mes-total" id="hojeRow">Gasto hoje: <b id="totalHoje">R$ 0,00</b></div>
 </div>
 
 <div class="form-wrap">
@@ -203,21 +187,14 @@
     </div>
     <div class="field">
       <label>Tipo</label>
-      <div class="toggle-group">
-        <button type="button" class="toggle-btn obrig" id="btnObrig">Obrigatório</button>
-        <button type="button" class="toggle-btn futil" id="btnFutil">Fútil</button>
-      </div>
+      <div class="toggle-group" id="toggleGroup"></div>
     </div>
-    <button type="submit" class="add-btn">Adicionar gasto</button>
+    <button type="submit" class="add-btn">Adicionar</button>
     <p class="form-error" id="formError"></p>
   </form>
 </div>
 
-<div class="filters">
-  <button class="filter-btn active" data-filter="todos">Todos</button>
-  <button class="filter-btn" data-filter="obrigatorio">Obrigatório</button>
-  <button class="filter-btn" data-filter="futil">Fútil</button>
-</div>
+<div class="filters" id="filters"></div>
 
 <div class="entries" id="entriesList"></div>
 
@@ -231,116 +208,93 @@
   "use strict";
 
   const STORAGE_KEY = "gastos-pessoais-v2";
+  const MIGRACAO_KEY = "gastos-migracao-5tipos";
+  const BACKUP_KEY = "gastos-pessoais-v2-backup-antes-5tipos";
+
+  /* tipos: ordem = ordem dos botões. pdf = cor no PDF (impressão) */
+  const TIPOS = {
+    contas:         { nome:"Contas",         cor:"#6EA8FE", dim:"#1A2A44", pdf:[52,110,200] },
+    essencial:      { nome:"Essencial",      cor:"#3DD9C4", dim:"#1D3B37", pdf:[29,140,126] },
+    investimento:   { nome:"Investimento",   cor:"#8BD450", dim:"#24361A", pdf:[70,140,40] },
+    relacionamento: { nome:"Relacionamento", cor:"#F472B6", dim:"#3D1A2E", pdf:[200,70,140] },
+    futil:          { nome:"Fútil",          cor:"#F5A623", dim:"#3D2E10", pdf:[196,124,8] }
+  };
+  const TIPOS_GASTO = ["contas","essencial","relacionamento","futil"];
+  const ehGasto = (g)=> g.tipo !== "investimento";
+  const corVars = (t)=> `--c:${(TIPOS[t]||TIPOS.futil).cor};--cd:${(TIPOS[t]||TIPOS.futil).dim}`;
+  const esc = (t)=> String(t).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
   let GASTOS = [];
   let tipoSelecionado = null;
   let filtroAtivo = "todos";
 
   const hoje = new Date();
   let anoSelecionado = hoje.getFullYear();
-  let mesSelecionado = hoje.getMonth(); // 0-11
+  let mesSelecionado = hoje.getMonth();
 
   const fmt = (n)=> n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   const fmtData = (iso)=> new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}) + " às " + new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  const soma = (l)=> l.reduce((s,g)=> s + g.valor, 0);
+  const $ = (id)=> document.getElementById(id);
 
-  const totalGeralEl = document.getElementById("totalGeral");
-  const totalObrigEl = document.getElementById("totalObrig");
-  const totalFutilEl = document.getElementById("totalFutil");
-  const totalMesEl = document.getElementById("totalMes");
-  const hojeRowEl = document.getElementById("hojeRow");
-  const entriesList = document.getElementById("entriesList");
-  const form = document.getElementById("gastoForm");
-  const formError = document.getElementById("formError");
-  const btnObrig = document.getElementById("btnObrig");
-  const btnFutil = document.getElementById("btnFutil");
-  const monthLabel = document.getElementById("monthLabel");
-  const prevMonthBtn = document.getElementById("prevMonthBtn");
-  const nextMonthBtn = document.getElementById("nextMonthBtn");
-  const todayBtn = document.getElementById("todayBtn");
-  const monthPicker = document.getElementById("monthPicker");
+  const monthLabel = $("monthLabel"), monthPicker = $("monthPicker"), todayBtn = $("todayBtn");
+  const entriesList = $("entriesList"), form = $("gastoForm"), formError = $("formError");
 
+  /* ===== dados ===== */
   function loadGastos(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       GASTOS = raw ? JSON.parse(raw) : [];
-    }catch(e){
-      console.error("Erro ao carregar dados:", e);
-      GASTOS = [];
-    }
+    }catch(e){ console.error("Erro ao carregar dados:", e); GASTOS = []; }
   }
-
   function saveGastos(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(GASTOS)); return true; }
+    catch(e){ console.error("Erro ao salvar:", e); return false; }
+  }
+
+  /* ===== reclassificação única dos lançamentos antigos (obrigatório/fútil) ===== */
+  function normaliza(t){ return String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
+  function novoTipo(g){
+    const m = normaliza(g.motivo);
+    if(m.includes("giulia") || m === "rosa" || m === "cacau show" || m === "gamboa") return "relacionamento";
+    if(m === "conta pai" || m === "hcc" || m.includes("spotify") || m === "apple") return "contas";
+    if(m.includes("caixinha") || m.includes("investimento") || /\bxp\b/.test(m)) return "investimento";
+    return g.tipo === "obrigatorio" ? "essencial" : "futil";
+  }
+  function migrar(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(GASTOS));
-      return true;
-    }catch(e){
-      console.error("Erro ao salvar:", e);
-      return false;
-    }
+      if(localStorage.getItem(MIGRACAO_KEY)) return;
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw && !localStorage.getItem(BACKUP_KEY)) localStorage.setItem(BACKUP_KEY, raw);
+      let mudou = false;
+      GASTOS.forEach(g=>{
+        if(g.tipo === "obrigatorio" || g.tipo === "futil" || !TIPOS[g.tipo]){
+          const t = novoTipo(g);
+          if(t !== g.tipo){ g.tipo = t; mudou = true; }
+        }
+      });
+      if(mudou && !saveGastos()) return;
+      localStorage.setItem(MIGRACAO_KEY, "1");
+    }catch(e){ console.error("Erro na reclassificação:", e); }
   }
 
-  /* ===== toggle tipo ===== */
-  btnObrig.addEventListener("click", ()=>{
-    tipoSelecionado = "obrigatorio";
-    btnObrig.classList.add("active");
-    btnFutil.classList.remove("active");
+  /* ===== monta botões, cards e filtros a partir de TIPOS ===== */
+  const ordemBotoes = Object.keys(TIPOS);
+  $("toggleGroup").innerHTML = ordemBotoes.map((t,i)=>
+    `<button type="button" class="toggle-btn${i>2?" wide":""}" data-tipo="${t}" style="${corVars(t)}">${TIPOS[t].nome}</button>`
+  ).join("");
+  $("subTotals").innerHTML = TIPOS_GASTO.map(t=>
+    `<div class="sub-card" style="${corVars(t)}"><div class="label"><span class="dot"></span>${TIPOS[t].nome}</div><div class="value" id="tot-${t}">R$ 0,00</div></div>`
+  ).join("");
+  $("filters").innerHTML = `<button class="filter-btn active" data-filter="todos">Todos</button>` +
+    ordemBotoes.map(t=> `<button class="filter-btn" data-filter="${t}">${TIPOS[t].nome}</button>`).join("");
+
+  document.querySelectorAll(".toggle-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      tipoSelecionado = btn.dataset.tipo;
+      document.querySelectorAll(".toggle-btn").forEach(b=> b.classList.toggle("active", b === btn));
+    });
   });
-  btnFutil.addEventListener("click", ()=>{
-    tipoSelecionado = "futil";
-    btnFutil.classList.add("active");
-    btnObrig.classList.remove("active");
-  });
-
-  /* ===== navegador de mês ===== */
-  const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-
-  function atualizarMonthNav(){
-    const nome = NOMES_MES[mesSelecionado];
-    monthLabel.textContent = nome.charAt(0).toUpperCase() + nome.slice(1) + " de " + anoSelecionado;
-
-    const ehMesAtual = anoSelecionado === hoje.getFullYear() && mesSelecionado === hoje.getMonth();
-    todayBtn.style.display = ehMesAtual ? "none" : "block";
-    hojeRowEl.style.display = ehMesAtual ? "block" : "none";
-
-    // mantém o input[type=month] sincronizado, pra abrir já no mês certo
-    const mm = String(mesSelecionado + 1).padStart(2, "0");
-    monthPicker.value = anoSelecionado + "-" + mm;
-  }
-
-  function irParaMes(ano, mes){
-    anoSelecionado = ano;
-    mesSelecionado = mes;
-    atualizarMonthNav();
-    render();
-  }
-
-  prevMonthBtn.addEventListener("click", ()=>{
-    mesSelecionado--;
-    if(mesSelecionado < 0){ mesSelecionado = 11; anoSelecionado--; }
-    irParaMes(anoSelecionado, mesSelecionado);
-  });
-
-  nextMonthBtn.addEventListener("click", ()=>{
-    mesSelecionado++;
-    if(mesSelecionado > 11){ mesSelecionado = 0; anoSelecionado++; }
-    irParaMes(anoSelecionado, mesSelecionado);
-  });
-
-  todayBtn.addEventListener("click", ()=>{
-    irParaMes(hoje.getFullYear(), hoje.getMonth());
-  });
-
-  monthLabel.addEventListener("click", ()=>{
-    if(monthPicker.showPicker){ monthPicker.showPicker(); }
-    else{ monthPicker.click(); }
-  });
-
-  monthPicker.addEventListener("change", ()=>{
-    if(!monthPicker.value) return;
-    const [ano, mes] = monthPicker.value.split("-").map(Number);
-    irParaMes(ano, mes - 1);
-  });
-
-  /* ===== filtros ===== */
   document.querySelectorAll(".filter-btn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
@@ -350,114 +304,110 @@
     });
   });
 
+  /* ===== navegador de mês ===== */
+  const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const nomeMesAtual = ()=> NOMES_MES[mesSelecionado].charAt(0).toUpperCase() + NOMES_MES[mesSelecionado].slice(1) + " de " + anoSelecionado;
+
+  function atualizarMonthNav(){
+    monthLabel.textContent = nomeMesAtual();
+    const ehMesAtual = anoSelecionado === hoje.getFullYear() && mesSelecionado === hoje.getMonth();
+    todayBtn.style.display = ehMesAtual ? "none" : "block";
+    $("hojeRow").style.display = ehMesAtual ? "block" : "none";
+    monthPicker.value = anoSelecionado + "-" + String(mesSelecionado + 1).padStart(2, "0");
+  }
+  function irParaMes(ano, mes){ anoSelecionado = ano; mesSelecionado = mes; atualizarMonthNav(); render(); }
+
+  $("prevMonthBtn").addEventListener("click", ()=>{
+    mesSelecionado--; if(mesSelecionado < 0){ mesSelecionado = 11; anoSelecionado--; }
+    irParaMes(anoSelecionado, mesSelecionado);
+  });
+  $("nextMonthBtn").addEventListener("click", ()=>{
+    mesSelecionado++; if(mesSelecionado > 11){ mesSelecionado = 0; anoSelecionado++; }
+    irParaMes(anoSelecionado, mesSelecionado);
+  });
+  todayBtn.addEventListener("click", ()=> irParaMes(hoje.getFullYear(), hoje.getMonth()));
+  monthLabel.addEventListener("click", ()=>{ if(monthPicker.showPicker){ monthPicker.showPicker(); } else { monthPicker.click(); } });
+  monthPicker.addEventListener("change", ()=>{
+    if(!monthPicker.value) return;
+    const [ano, mes] = monthPicker.value.split("-").map(Number);
+    irParaMes(ano, mes - 1);
+  });
+
+  const doMesSelecionado = ()=> GASTOS.filter(g=>{
+    const d = new Date(g.data);
+    return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
+  });
+
+  /* ===== render ===== */
   function render(){
-    const gastosDoMes = GASTOS.filter(g=>{
-      const d = new Date(g.data);
-      return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
-    });
+    const doMes = doMesSelecionado();
+    const gastos = doMes.filter(ehGasto);
+    $("totalGasto").textContent = fmt(soma(gastos));
+    $("totalInvest").textContent = fmt(soma(doMes.filter(g=>g.tipo==="investimento")));
+    TIPOS_GASTO.forEach(t=> $("tot-"+t).textContent = fmt(soma(doMes.filter(g=>g.tipo===t))));
+    $("totalHoje").textContent = fmt(soma(gastos.filter(g=> new Date(g.data).toDateString() === hoje.toDateString())));
 
-    const totalGeral = gastosDoMes.reduce((s,g)=> s + g.valor, 0);
-    const totalObrig = gastosDoMes.filter(g=>g.tipo==="obrigatorio").reduce((s,g)=> s + g.valor, 0);
-    const totalFutil = gastosDoMes.filter(g=>g.tipo==="futil").reduce((s,g)=> s + g.valor, 0);
-
-    totalGeralEl.textContent = fmt(totalGeral);
-    totalObrigEl.textContent = fmt(totalObrig);
-    totalFutilEl.textContent = fmt(totalFutil);
-
-    const totalHoje = gastosDoMes
-      .filter(g=>{
-        const d = new Date(g.data);
-        return d.getDate()===hoje.getDate() && d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear();
-      })
-      .reduce((s,g)=> s + g.valor, 0);
-    totalMesEl.textContent = fmt(totalHoje);
-
-    let lista = [...gastosDoMes].sort((a,b)=> new Date(b.data) - new Date(a.data));
-    if(filtroAtivo !== "todos"){
-      lista = lista.filter(g => g.tipo === filtroAtivo);
-    }
+    let lista = [...doMes].sort((a,b)=> new Date(b.data) - new Date(a.data));
+    if(filtroAtivo !== "todos") lista = lista.filter(g => g.tipo === filtroAtivo);
 
     if(lista.length === 0){
-      entriesList.innerHTML = `<div class="empty">${gastosDoMes.length===0 ? "Nenhum gasto lançado neste mês." : "Nenhum gasto nesse filtro, neste mês."}</div>`;
+      entriesList.innerHTML = `<div class="empty">${doMes.length===0 ? "Nenhum lançamento neste mês." : "Nenhum lançamento nesse filtro, neste mês."}</div>`;
       return;
     }
 
     entriesList.innerHTML = lista.map(g => `
       <div class="entry">
         <div class="left">
-          <div class="top-row">
-            <span class="badge ${g.tipo==='obrigatorio'?'obrig':'futil'}">${g.tipo==='obrigatorio'?'Obrigatório':'Fútil'}</span>
-          </div>
-          <div class="motivo">${g.motivo}</div>
+          <div class="top-row"><span class="badge" style="${corVars(g.tipo)}">${(TIPOS[g.tipo]||{nome:g.tipo}).nome}</span></div>
+          <div class="motivo">${esc(g.motivo)}</div>
           <div class="data">${fmtData(g.data)}</div>
         </div>
         <div class="right">
           <span class="valor">${fmt(g.valor)}</span>
           <button class="del" data-id="${g.id}">✕</button>
         </div>
-      </div>
-    `).join("");
+      </div>`).join("");
 
     entriesList.querySelectorAll(".del").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         if(btn.dataset.confirm !== "1"){
-          btn.dataset.confirm = "1";
-          btn.classList.add("confirming");
+          btn.dataset.confirm = "1"; btn.classList.add("confirming");
           setTimeout(()=>{ btn.dataset.confirm = "0"; btn.classList.remove("confirming"); }, 2500);
           return;
         }
         GASTOS = GASTOS.filter(g => g.id !== btn.dataset.id);
-        saveGastos();
-        render();
+        saveGastos(); render();
       });
     });
   }
 
+  /* ===== adicionar ===== */
   form.addEventListener("submit", (e)=>{
     e.preventDefault();
     formError.style.display = "none";
-
-    const valor = parseFloat(document.getElementById("fValor").value);
-    const motivo = document.getElementById("fMotivo").value.trim();
-
+    const valor = parseFloat($("fValor").value);
+    const motivo = $("fMotivo").value.trim();
     if(isNaN(valor) || valor <= 0 || !motivo || !tipoSelecionado){
-      formError.textContent = !tipoSelecionado
-        ? "Escolhe se o gasto é Obrigatório ou Fútil."
-        : "Preenche o valor e o motivo antes de adicionar.";
+      formError.textContent = !tipoSelecionado ? "Escolhe o tipo do lançamento." : "Preenche o valor e o motivo antes de adicionar.";
       formError.style.display = "block";
       return;
     }
-
-    GASTOS.push({
-      id: "g" + Date.now() + Math.random().toString(36).slice(2,7),
-      valor, motivo, tipo: tipoSelecionado,
-      data: new Date().toISOString()
-    });
-
-    const ok = saveGastos();
-    if(!ok){
+    GASTOS.push({ id: "g" + Date.now() + Math.random().toString(36).slice(2,7), valor, motivo, tipo: tipoSelecionado, data: new Date().toISOString() });
+    if(!saveGastos()){
       formError.textContent = "Não consegui salvar. O celular pode estar sem espaço de armazenamento.";
       formError.style.display = "block";
       GASTOS.pop();
       return;
     }
-
     form.reset();
     tipoSelecionado = null;
-    btnObrig.classList.remove("active");
-    btnFutil.classList.remove("active");
-    document.getElementById("fValor").focus();
-
-    // todo gasto novo é lançado com a data de hoje, então volta a visualização pro mês atual
-    anoSelecionado = hoje.getFullYear();
-    mesSelecionado = hoje.getMonth();
-    atualizarMonthNav();
-    render();
+    document.querySelectorAll(".toggle-btn").forEach(b=>b.classList.remove("active"));
+    $("fValor").focus();
+    irParaMes(hoje.getFullYear(), hoje.getMonth());
   });
 
-  /* ===== extrato PDF do mês ===== */
-  const pdfBtn = document.getElementById("pdfBtn");
-  const pdfMsg = document.getElementById("pdfMsg");
+  /* ===== extrato PDF ===== */
+  const pdfMsg = $("pdfMsg");
   const brl = (n)=> fmt(n).replace(/\u00a0/g, " ");
   const limpa = (t)=> String(t).replace(/[^\u0000-\u00ff\u2013\u2014]/g, "").trim() || "-";
 
@@ -466,26 +416,20 @@
       pdfMsg.textContent = "Não consegui carregar o gerador de PDF. Confira a internet e tente de novo.";
       return;
     }
-    const doMes = GASTOS.filter(g=>{
-      const d = new Date(g.data);
-      return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
-    }).sort((a,b)=> new Date(a.data) - new Date(b.data));
-    if(doMes.length === 0){ pdfMsg.textContent = "Nenhum gasto neste mês para gerar o extrato."; return; }
+    const doMes = doMesSelecionado().sort((a,b)=> new Date(a.data) - new Date(b.data));
+    if(doMes.length === 0){ pdfMsg.textContent = "Nenhum lançamento neste mês para gerar o extrato."; return; }
 
-    const obrig = doMes.filter(g=>g.tipo==="obrigatorio");
-    const futil = doMes.filter(g=>g.tipo==="futil");
-    const soma = (l)=> l.reduce((s,g)=> s + g.valor, 0);
-    const tot = soma(doMes), tObrig = soma(obrig), tFutil = soma(futil);
-    const pct = (v)=> tot ? (v/tot*100).toFixed(1).replace(".", ",") + "%" : "0%";
-    const nomeMes = NOMES_MES[mesSelecionado].charAt(0).toUpperCase() + NOMES_MES[mesSelecionado].slice(1) + " de " + anoSelecionado;
+    const gastos = doMes.filter(ehGasto);
+    const invest = doMes.filter(g=>g.tipo==="investimento");
+    const totGasto = soma(gastos), totInvest = soma(invest);
+    const pct = (v)=> totGasto ? (v/totGasto*100).toFixed(1).replace(".", ",") + "%" : "-";
+    const nomeMes = nomeMesAtual();
     const diasNoMes = new Date(anoSelecionado, mesSelecionado + 1, 0).getDate();
-    const maior = doMes.reduce((m,g)=> g.valor > m.valor ? g : m, doMes[0]);
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:"mm", format:"a4" });
-    const W = doc.internal.pageSize.getWidth();
-    const M = 15;
-    const TEAL = [29,140,126], AMBER = [196,124,8], DARK = [30,30,30], GREY = [110,110,110];
+    const W = doc.internal.pageSize.getWidth(), M = 15;
+    const DARK = [30,30,30], GREY = [110,110,110];
 
     doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(...DARK);
     doc.text("Extrato de gastos", M, 20);
@@ -494,42 +438,50 @@
     doc.setFontSize(9);
     doc.text("Gerado em " + new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}), W - M, 20, { align:"right" });
 
+    const linhasResumo = TIPOS_GASTO.map(t=>{
+      const l = doMes.filter(g=>g.tipo===t);
+      return [TIPOS[t].nome + " (" + l.length + ")", brl(soma(l)), pct(soma(l))];
+    });
+    linhasResumo.push(["Gasto do mês (" + gastos.length + " lançamentos)", brl(totGasto), totGasto ? "100%" : "-"]);
+    linhasResumo.push(["Média de gasto por dia (" + diasNoMes + " dias)", brl(totGasto / diasNoMes), ""]);
+    if(gastos.length){
+      const maior = gastos.reduce((m,g)=> g.valor > m.valor ? g : m, gastos[0]);
+      linhasResumo.push(["Maior gasto: " + limpa(maior.motivo), brl(maior.valor), pct(maior.valor)]);
+    }
+    linhasResumo.push(["Investido no mês (" + invest.length + ")", brl(totInvest), "fora do gasto"]);
+    const iTotal = TIPOS_GASTO.length, iInvest = linhasResumo.length - 1;
+
     doc.autoTable({
       startY: 34,
-      head: [["Resumo do mês", "Valor", "% do total"]],
-      body: [
-        ["Gastos obrigatórios (" + obrig.length + ")", brl(tObrig), pct(tObrig)],
-        ["Gastos fúteis (" + futil.length + ")", brl(tFutil), pct(tFutil)],
-        ["Total do mês (" + doMes.length + " lançamentos)", brl(tot), "100%"],
-        ["Média por dia (" + diasNoMes + " dias)", brl(tot / diasNoMes), ""],
-        ["Maior gasto: " + limpa(maior.motivo), brl(maior.valor), pct(maior.valor)]
-      ],
+      head: [["Resumo do mês", "Valor", "% do gasto"]],
+      body: linhasResumo,
       theme: "grid",
       headStyles: { fillColor: DARK, textColor: 255, fontStyle:"bold" },
-      columnStyles: { 1:{ halign:"right", cellWidth:35 }, 2:{ halign:"right", cellWidth:25 } },
+      columnStyles: { 1:{ halign:"right", cellWidth:35 }, 2:{ halign:"right", cellWidth:28 } },
       styles: { fontSize:10, cellPadding:2.5 },
       didParseCell: (d)=>{
         if(d.section === "head" && d.column.index > 0) d.cell.styles.halign = "right";
-        if(d.section === "body" && d.row.index === 0 && d.column.index === 0) d.cell.styles.textColor = TEAL;
-        if(d.section === "body" && d.row.index === 1 && d.column.index === 0) d.cell.styles.textColor = AMBER;
-        if(d.section === "body" && d.row.index === 2) d.cell.styles.fontStyle = "bold";
+        if(d.section !== "body") return;
+        if(d.row.index < iTotal && d.column.index === 0) d.cell.styles.textColor = TIPOS[TIPOS_GASTO[d.row.index]].pdf;
+        if(d.row.index === iTotal) d.cell.styles.fontStyle = "bold";
+        if(d.row.index === iInvest){ d.cell.styles.textColor = TIPOS.investimento.pdf; d.cell.styles.fontStyle = "bold"; }
       },
       margin: { left:M, right:M }
     });
 
-    function secao(titulo, lista, cor, subtotal){
+    function secao(t){
+      const lista = doMes.filter(g=>g.tipo===t);
+      if(!lista.length) return;
+      const sub = soma(lista), cor = TIPOS[t].pdf;
       let y = doc.lastAutoTable.finalY + 10;
       if(y > 260){ doc.addPage(); y = 20; }
       doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...cor);
-      doc.text(titulo, M, y);
-      const body = lista.length
-        ? lista.map((g,i)=> [String(i+1), new Date(g.data).toLocaleDateString("pt-BR"), limpa(g.motivo), brl(g.valor)])
-        : [["", "", "Nenhum gasto lançado", ""]];
+      doc.text(TIPOS[t].nome, M, y);
       doc.autoTable({
         startY: y + 3,
         head: [["#", "Data", "Motivo", "Valor"]],
-        body,
-        foot: [["", "", "Subtotal (" + pct(subtotal) + " do mês)", brl(subtotal)]],
+        body: lista.map((g,i)=> [String(i+1), new Date(g.data).toLocaleDateString("pt-BR"), limpa(g.motivo), brl(g.valor)]),
+        foot: [["", "", t === "investimento" ? "Total investido" : "Subtotal (" + pct(sub) + " do gasto)", brl(sub)]],
         theme: "striped",
         headStyles: { fillColor: cor, textColor: 255 },
         footStyles: { fillColor: [240,240,240], textColor: DARK, fontStyle:"bold" },
@@ -540,15 +492,21 @@
         margin: { left:M, right:M }
       });
     }
-    secao("Gastos obrigatórios", obrig, TEAL, tObrig);
-    secao("Gastos fúteis", futil, AMBER, tFutil);
+    TIPOS_GASTO.forEach(secao);
+    secao("investimento");
 
     let y = doc.lastAutoTable.finalY + 10;
-    if(y > 270){ doc.addPage(); y = 20; }
+    if(y > 262){ doc.addPage(); y = 20; }
     doc.setDrawColor(...DARK); doc.setLineWidth(0.5); doc.line(M, y - 5, W - M, y - 5);
     doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...DARK);
-    doc.text("Total geral do mês", M, y + 1);
-    doc.text(brl(tot), W - M, y + 1, { align:"right" });
+    doc.text("Gasto do mês", M, y + 1);
+    doc.text(brl(totGasto), W - M, y + 1, { align:"right" });
+    doc.setFontSize(11); doc.setTextColor(...TIPOS.investimento.pdf);
+    doc.text("Investido no mês", M, y + 8);
+    doc.text(brl(totInvest), W - M, y + 8, { align:"right" });
+    doc.setTextColor(...GREY); doc.setFont("helvetica","normal");
+    doc.text("Total que saiu da conta", M, y + 15);
+    doc.text(brl(totGasto + totInvest), W - M, y + 15, { align:"right" });
 
     const n = doc.getNumberOfPages();
     for(let i = 1; i <= n; i++){
@@ -557,18 +515,16 @@
       doc.text("Controle de Gastos — " + nomeMes, M, 290);
       doc.text("Página " + i + " de " + n, W - M, 290, { align:"right" });
     }
-
-    const mm = String(mesSelecionado + 1).padStart(2, "0");
-    doc.save("extrato-gastos-" + anoSelecionado + "-" + mm + ".pdf");
+    doc.save("extrato-gastos-" + anoSelecionado + "-" + String(mesSelecionado + 1).padStart(2, "0") + ".pdf");
     pdfMsg.textContent = "Extrato de " + nomeMes + " gerado.";
     setTimeout(()=>{ pdfMsg.textContent = ""; }, 5000);
   }
-  pdfBtn.addEventListener("click", gerarExtratoPDF);
+  $("pdfBtn").addEventListener("click", gerarExtratoPDF);
 
   loadGastos();
+  migrar();
   atualizarMonthNav();
   render();
-
 })();
 </script>
 </body>
