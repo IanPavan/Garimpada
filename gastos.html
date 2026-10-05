@@ -2,8 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Gastos</title>
+<meta name="description" content="Controle de gastos simples. Seus dados ficam só no seu celular.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,11 +14,14 @@
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMEEwQTBBIi8+PHRleHQgeD0iNjQiIHk9IjgwIiBmb250LWZhbWlseT0iYXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZm9udC1zaXplPSI1NiIgZmlsbD0iI0Y1RjVGNSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UiQ8L3RleHQ+PC9zdmc+">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
+
   :root{
     --bg:#0A0A0A; --panel:#161616; --panel-2:#1F1F1F; --line:#2A2A2A;
     --text:#F5F5F5; --text-dim:#9A9A9A; --text-faint:#5C5C5C;
-    --investimento:#8BD450;
+    --investimento:#8BD450; --futil-txt:#F5A623;
     --danger:#E5484D;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -30,7 +34,7 @@
   .font-mono{font-family:'JetBrains Mono',monospace;}
   ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
 
-  header{ padding:24px 20px 16px; text-align:center; }
+  header{ padding:calc(24px + env(safe-area-inset-top)) 20px 16px; text-align:center; }
   header h1{ font-size:15px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin:0; }
 
   /* ===== NAVEGADOR DE MÊS ===== */
@@ -152,9 +156,65 @@
     background:var(--panel); color:var(--text); font-weight:700; font-size:15px; cursor:pointer; }
   .pdf-btn:active{ transform:scale(0.98); }
   .pdf-msg{ text-align:center; font-size:12px; color:var(--text-dim); margin-top:8px; min-height:16px; }
+
+  /* ===== rótulo do tipo com lápis ===== */
+  .tipo-label{ display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .tipo-label label{ margin:0 !important; }
+  .icon-btn{ background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim); width:30px; height:30px;
+    border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
+  .icon-btn svg{ width:15px; height:15px; }
+  .icon-btn:active{ transform:scale(0.92); }
+
+  /* ===== rodapé: PDF, backup, ajuda ===== */
+  .tools{ padding:24px 16px 40px; max-width:520px; margin:0 auto; }
+  .tool-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+  .tool-btn{ width:100%; padding:13px 10px; border-radius:12px; border:1px solid var(--line);
+    background:var(--panel); color:var(--text-dim); font-weight:600; font-size:13.5px; cursor:pointer; }
+  .tool-btn:active{ transform:scale(0.98); }
+  .backup-info{ text-align:center; font-size:11.5px; color:var(--text-faint); margin-top:10px; font-family:'JetBrains Mono',monospace; }
+  .backup-info.alerta{ color:var(--futil-txt); }
+  .help-link{ display:block; margin:18px auto 0; background:none; border:none; color:var(--text-faint);
+    font-size:12.5px; text-decoration:underline; cursor:pointer; }
+
+  /* ===== modais ===== */
+  .modal-bg{ position:fixed; inset:0; background:rgba(0,0,0,.72); display:none; align-items:flex-end; justify-content:center; z-index:50; }
+  .modal-bg.open{ display:flex; }
+  .modal{ background:var(--panel); border:1px solid var(--line); border-radius:22px 22px 0 0; width:100%; max-width:520px;
+    max-height:92vh; overflow-y:auto; padding:22px 20px calc(22px + env(safe-area-inset-bottom)); }
+  @media (min-width:560px){ .modal-bg{ align-items:center; } .modal{ border-radius:22px; } }
+  .modal h2{ font-size:20px; margin:0 0 4px; }
+  .modal .sub{ color:var(--text-dim); font-size:13.5px; margin:0 0 18px; line-height:1.5; }
+  .aviso{ display:flex; gap:12px; align-items:flex-start; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+  .aviso .num{ font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text); background:var(--line);
+    width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+  .aviso b{ display:block; font-size:14px; margin-bottom:2px; }
+  .aviso span{ font-size:12.5px; color:var(--text-dim); line-height:1.45; }
+  .modal h3{ font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); margin:20px 0 10px; }
+  .tabs{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .tab{ padding:11px; border-radius:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--text-dim);
+    font-weight:700; font-size:13.5px; cursor:pointer; }
+  .tab.active{ color:var(--text); border-color:var(--text-faint); background:var(--line); }
+  .passos{ margin:0; padding:0; list-style:none; counter-reset:p; }
+  .passos li{ counter-increment:p; position:relative; padding:0 0 12px 34px; font-size:13.5px; line-height:1.5; color:var(--text-dim); }
+  .passos li::before{ content:counter(p); position:absolute; left:0; top:0; width:22px; height:22px; border-radius:50%;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text); font-size:11.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; }
+  .passos b{ color:var(--text); }
+  .ja-app{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--text-dim); }
+  .modal .add-btn{ margin-top:16px; }
+
+  .tipo-opcao{ display:flex; align-items:center; gap:12px; padding:13px 14px; background:var(--panel-2);
+    border:1px solid var(--line); border-radius:14px; margin-bottom:8px; cursor:pointer; }
+  .tipo-opcao .txt{ flex:1; min-width:0; }
+  .tipo-opcao b{ display:flex; align-items:center; gap:7px; font-size:14.5px; }
+  .tipo-opcao span{ font-size:12px; color:var(--text-faint); }
+  .switch{ width:42px; height:24px; border-radius:12px; background:var(--line); position:relative; flex-shrink:0; transition:background .15s; }
+  .switch::after{ content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:var(--text-dim); transition:all .15s; }
+  .tipo-opcao.on .switch{ background:var(--c); }
+  .tipo-opcao.on .switch::after{ left:21px; background:#fff; }
+  .modal-erro{ color:var(--danger); font-size:12.5px; text-align:center; min-height:16px; margin:6px 0 0; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -174,7 +234,7 @@
   <div class="total-geral">
     <div class="label">Gasto do mês</div>
     <div class="value font-mono" id="totalGasto">R$ 0,00</div>
-    <div class="invest-line">Investido: <b id="totalInvest">R$ 0,00</b></div>
+    <div class="invest-line" id="investLine">Investido: <b id="totalInvest">R$ 0,00</b></div>
   </div>
   <div class="sub-totals" id="subTotals"></div>
   <div class="mes-total" id="hojeRow">Gasto hoje: <b id="totalHoje">R$ 0,00</b></div>
@@ -188,10 +248,15 @@
     </div>
     <div class="field">
       <label>Motivo</label>
-      <input id="fMotivo" type="text" placeholder="Ex: almoço, gasolina, mercado..." required>
+      <input id="fMotivo" type="text" placeholder="Ex: almoço, gasolina, mercado..." maxlength="80" required>
     </div>
     <div class="field">
-      <label>Tipo</label>
+      <div class="tipo-label">
+        <label>Tipo</label>
+        <button type="button" class="icon-btn" id="editTiposBtn" aria-label="Escolher os tipos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+      </div>
       <div class="toggle-group" id="toggleGroup"></div>
     </div>
     <button type="submit" class="add-btn">Adicionar</button>
@@ -203,9 +268,63 @@
 
 <div class="entries" id="entriesList"></div>
 
-<div class="pdf-wrap">
+<div class="tools">
   <button type="button" class="pdf-btn" id="pdfBtn">Gerar extrato PDF do mês</button>
   <p class="pdf-msg" id="pdfMsg"></p>
+  <div class="tool-row">
+    <button type="button" class="tool-btn" id="backupBtn">Fazer backup</button>
+    <button type="button" class="tool-btn" id="restoreBtn">Restaurar backup</button>
+  </div>
+  <input type="file" id="restoreFile" accept=".json,application/json" style="display:none">
+  <p class="backup-info" id="backupInfo"></p>
+  <button type="button" class="help-link" id="helpBtn">Como instalar e avisos importantes</button>
+</div>
+
+<!-- ===== boas-vindas ===== -->
+<div class="modal-bg" id="welcomeModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2>Bem-vindo ao Gastos</h2>
+    <p class="sub">Antes de começar, três avisos rápidos:</p>
+    <div class="aviso"><div class="num">1</div><div><b>Seus dados ficam só neste celular</b><span>Nada é enviado para a internet. Ninguém além de você vê seus lançamentos.</span></div></div>
+    <div class="aviso"><div class="num">2</div><div><b>Adicione à tela de início</b><span>Assim ele abre como um app e seus dados ficam guardados com segurança. O passo a passo está logo abaixo.</span></div></div>
+    <div class="aviso"><div class="num">3</div><div><b>Faça backup de vez em quando</b><span>Se trocar de celular ou limpar o navegador, só o backup traz seus dados de volta. O botão fica no final da tela.</span></div></div>
+
+    <h3>Como adicionar à tela de início</h3>
+    <div id="instalarBox">
+      <div class="tabs">
+        <button type="button" class="tab" data-os="ios">iPhone</button>
+        <button type="button" class="tab" data-os="android">Android</button>
+      </div>
+      <ol class="passos" id="passos-ios">
+        <li>Abra este link no <b>Safari</b>.</li>
+        <li>Toque no botão <b>Compartilhar</b> (o quadrado com a seta para cima), na barra de baixo.</li>
+        <li>Role as opções e toque em <b>Adicionar à Tela de Início</b>.</li>
+        <li>Toque em <b>Adicionar</b>, no canto de cima.</li>
+        <li>Pronto: abra sempre pelo ícone <b>Gastos</b> na sua tela de início.</li>
+      </ol>
+      <ol class="passos" id="passos-android" style="display:none">
+        <li>Abra este link no <b>Google Chrome</b>.</li>
+        <li>Toque nos <b>três pontinhos</b> (⋮), no canto de cima à direita.</li>
+        <li>Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>
+        <li>Confirme em <b>Instalar</b> ou <b>Adicionar</b>.</li>
+        <li>Pronto: abra sempre pelo ícone <b>Gastos</b> na sua tela inicial.</li>
+      </ol>
+    </div>
+    <div class="ja-app" id="jaApp" style="display:none">✓ Você já está usando o Gastos pela tela de início. Está tudo certo.</div>
+
+    <button type="button" class="add-btn" id="welcomeOk">Entendi, começar</button>
+  </div>
+</div>
+
+<!-- ===== escolher tipos ===== -->
+<div class="modal-bg" id="tiposModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2>Seus tipos</h2>
+    <p class="sub">Deixe ligados só os tipos que você quer usar. Lançamentos antigos de um tipo desligado continuam salvos e aparecem no mês em que foram feitos.</p>
+    <div id="tiposLista"></div>
+    <p class="modal-erro" id="tiposErro"></p>
+    <button type="button" class="add-btn" id="tiposSalvar">Salvar</button>
+  </div>
 </div>
 
 <script>
@@ -213,23 +332,24 @@
   "use strict";
 
   const STORAGE_KEY = "gastos-pessoais-v2";
-  const MIGRACAO_KEY = "gastos-migracao-5tipos";
-  const BACKUP_KEY = "gastos-pessoais-v2-backup-antes-5tipos";
+  const CONFIG_KEY  = "gastos-pessoais-config";
 
-  /* tipos: ordem = ordem dos botões. pdf = cor no PDF (impressão) */
   const TIPOS = {
-    contas:         { nome:"Contas",         cor:"#6EA8FE", dim:"#1A2A44", pdf:[52,110,200] },
-    essencial:      { nome:"Essencial",      cor:"#3DD9C4", dim:"#1D3B37", pdf:[29,140,126] },
-    investimento:   { nome:"Investimento",   cor:"#8BD450", dim:"#24361A", pdf:[70,140,40] },
-    relacionamento: { nome:"Relacionamento", cor:"#F472B6", dim:"#3D1A2E", pdf:[200,70,140] },
-    futil:          { nome:"Fútil",          cor:"#F5A623", dim:"#3D2E10", pdf:[196,124,8] }
+    contas:         { nome:"Contas",         desc:"Valor e data certos: aluguel, luz, internet, assinaturas", cor:"#6EA8FE", dim:"#1A2A44", pdf:[52,110,200] },
+    essencial:      { nome:"Essencial",      desc:"Necessário, mas varia: mercado, gasolina, farmácia",       cor:"#3DD9C4", dim:"#1D3B37", pdf:[29,140,126] },
+    investimento:   { nome:"Investimento",   desc:"O que você guarda ou aplica (não conta como gasto)",       cor:"#8BD450", dim:"#24361A", pdf:[70,140,40] },
+    relacionamento: { nome:"Relacionamento", desc:"Saídas, presentes e programas a dois",                     cor:"#F472B6", dim:"#3D1A2E", pdf:[200,70,140] },
+    futil:          { nome:"Fútil",          desc:"Lazer e compras que dava para evitar",                    cor:"#F5A623", dim:"#3D2E10", pdf:[196,124,8] }
   };
+  const ORDEM = Object.keys(TIPOS);
   const TIPOS_GASTO = ["contas","essencial","relacionamento","futil"];
   const ehGasto = (g)=> g.tipo !== "investimento";
   const corVars = (t)=> `--c:${(TIPOS[t]||TIPOS.futil).cor};--cd:${(TIPOS[t]||TIPOS.futil).dim}`;
   const esc = (t)=> String(t).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const $ = (id)=> document.getElementById(id);
 
   let GASTOS = [];
+  let CONFIG = { tipos: ORDEM.slice(), boasVindasVista:true, ultimoBackup:null };
   let tipoSelecionado = null;
   let filtroAtivo = "todos";
 
@@ -240,119 +360,108 @@
   const fmt = (n)=> n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   const fmtData = (iso)=> new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}) + " às " + new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   const soma = (l)=> l.reduce((s,g)=> s + g.valor, 0);
-  const $ = (id)=> document.getElementById(id);
 
-  const monthLabel = $("monthLabel"), monthPicker = $("monthPicker"), todayBtn = $("todayBtn");
-  const entriesList = $("entriesList"), form = $("gastoForm"), formError = $("formError");
-
-  /* ===== dados ===== */
-  function loadGastos(){
+  /* ===== armazenamento ===== */
+  function carregar(){
+    try{ const raw = localStorage.getItem(STORAGE_KEY); GASTOS = raw ? JSON.parse(raw) : []; if(!Array.isArray(GASTOS)) GASTOS = []; }
+    catch(e){ GASTOS = []; }
     try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      GASTOS = raw ? JSON.parse(raw) : [];
-    }catch(e){ console.error("Erro ao carregar dados:", e); GASTOS = []; }
+      const c = JSON.parse(localStorage.getItem(CONFIG_KEY) || "null");
+      if(c && typeof c === "object"){
+        CONFIG = Object.assign(CONFIG, c);
+        CONFIG.tipos = (Array.isArray(c.tipos) ? c.tipos : ORDEM).filter(t=> TIPOS[t]);
+        if(!CONFIG.tipos.length) CONFIG.tipos = ORDEM.slice();
+      }
+    }catch(e){}
   }
-  function saveGastos(){
+  function salvar(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(GASTOS)); return true; }
-    catch(e){ console.error("Erro ao salvar:", e); return false; }
+    catch(e){ return false; }
   }
+  function salvarConfig(){ try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); }catch(e){} }
 
-  /* ===== reclassificação única dos lançamentos antigos (obrigatório/fútil) ===== */
-  function normaliza(t){ return String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
-  function novoTipo(g){
-    const m = normaliza(g.motivo);
-    if(m.includes("giulia") || m === "rosa" || m === "cacau show" || m === "gamboa") return "relacionamento";
-    if(m === "conta pai" || m === "hcc" || m.includes("spotify") || m === "apple") return "contas";
-    if(m.includes("caixinha") || m.includes("investimento") || /\bxp\b/.test(m)) return "investimento";
-    return g.tipo === "obrigatorio" ? "essencial" : "futil";
-  }
-  function migrar(){
-    try{
-      if(localStorage.getItem(MIGRACAO_KEY)) return;
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw && !localStorage.getItem(BACKUP_KEY)) localStorage.setItem(BACKUP_KEY, raw);
-      let mudou = false;
-      GASTOS.forEach(g=>{
-        if(g.tipo === "obrigatorio" || g.tipo === "futil" || !TIPOS[g.tipo]){
-          const t = novoTipo(g);
-          if(t !== g.tipo){ g.tipo = t; mudou = true; }
-        }
-      });
-      if(mudou && !saveGastos()) return;
-      localStorage.setItem(MIGRACAO_KEY, "1");
-    }catch(e){ console.error("Erro na reclassificação:", e); }
-  }
-
-  /* ===== monta botões, cards e filtros a partir de TIPOS ===== */
-  const ordemBotoes = Object.keys(TIPOS);
-  $("toggleGroup").innerHTML = ordemBotoes.map((t,i)=>
-    `<button type="button" class="toggle-btn${i>2?" wide":""}" data-tipo="${t}" style="${corVars(t)}">${TIPOS[t].nome}</button>`
-  ).join("");
-  $("subTotals").innerHTML = TIPOS_GASTO.map(t=>
-    `<div class="sub-card" data-tipo="${t}" style="${corVars(t)}"><div class="label"><span class="dot"></span>${TIPOS[t].nome}</div><div class="value" id="tot-${t}">R$ 0,00</div></div>`
-  ).join("");
-  $("filters").innerHTML = `<button class="filter-btn active" data-filter="todos">Todos</button>` +
-    ordemBotoes.map(t=> `<button class="filter-btn" data-filter="${t}">${TIPOS[t].nome}</button>`).join("");
-
-  document.querySelectorAll(".toggle-btn").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      tipoSelecionado = btn.dataset.tipo;
-      document.querySelectorAll(".toggle-btn").forEach(b=> b.classList.toggle("active", b === btn));
-    });
+  /* ===== mês ===== */
+  const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const nomeMesAtual = ()=> NOMES_MES[mesSelecionado].charAt(0).toUpperCase() + NOMES_MES[mesSelecionado].slice(1) + " de " + anoSelecionado;
+  const doMesSelecionado = ()=> GASTOS.filter(g=>{
+    const d = new Date(g.data);
+    return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
   });
+
+  function atualizarMonthNav(){
+    $("monthLabel").textContent = nomeMesAtual();
+    const ehMesAtual = anoSelecionado === hoje.getFullYear() && mesSelecionado === hoje.getMonth();
+    $("todayBtn").style.display = ehMesAtual ? "none" : "block";
+    $("hojeRow").style.display = ehMesAtual ? "block" : "none";
+    $("monthPicker").value = anoSelecionado + "-" + String(mesSelecionado + 1).padStart(2, "0");
+  }
+  function irParaMes(ano, mes){ anoSelecionado = ano; mesSelecionado = mes; atualizarMonthNav(); montarDinamico(); render(); }
+
+  $("prevMonthBtn").addEventListener("click", ()=>{ let m = mesSelecionado - 1, a = anoSelecionado; if(m < 0){ m = 11; a--; } irParaMes(a, m); });
+  $("nextMonthBtn").addEventListener("click", ()=>{ let m = mesSelecionado + 1, a = anoSelecionado; if(m > 11){ m = 0; a++; } irParaMes(a, m); });
+  $("todayBtn").addEventListener("click", ()=> irParaMes(hoje.getFullYear(), hoje.getMonth()));
+  $("monthLabel").addEventListener("click", ()=>{ const p = $("monthPicker"); if(p.showPicker){ p.showPicker(); } else { p.click(); } });
+  $("monthPicker").addEventListener("change", ()=>{
+    const v = $("monthPicker").value; if(!v) return;
+    const [a, m] = v.split("-").map(Number); irParaMes(a, m - 1);
+  });
+
+  /* ===== botões, cartões e filtros (dependem dos tipos ligados) ===== */
+  const SPANS = { 1:[6], 2:[3,3], 3:[2,2,2], 4:[3,3,3,3], 5:[2,2,2,3,3] };
+
+  function tiposVisiveis(){
+    // tipos ligados + tipos desligados que têm lançamento no mês aberto
+    const noMes = new Set(doMesSelecionado().map(g=>g.tipo));
+    return ORDEM.filter(t=> CONFIG.tipos.includes(t) || noMes.has(t));
+  }
+
+  function montarDinamico(){
+    const ligados = ORDEM.filter(t=> CONFIG.tipos.includes(t));
+    if(tipoSelecionado && !ligados.includes(tipoSelecionado)) tipoSelecionado = null;
+    const spans = SPANS[ligados.length] || [];
+    $("toggleGroup").innerHTML = ligados.map((t,i)=>
+      `<button type="button" class="toggle-btn${tipoSelecionado===t?" active":""}" data-tipo="${t}" style="${corVars(t)};grid-column:span ${spans[i]||2}">${TIPOS[t].nome}</button>`
+    ).join("");
+    document.querySelectorAll(".toggle-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        tipoSelecionado = btn.dataset.tipo;
+        document.querySelectorAll(".toggle-btn").forEach(b=> b.classList.toggle("active", b === btn));
+      });
+    });
+
+    const visiveis = tiposVisiveis();
+    if(filtroAtivo !== "todos" && !visiveis.includes(filtroAtivo)) filtroAtivo = "todos";
+
+    const cards = visiveis.filter(t=> t !== "investimento");
+    $("subTotals").innerHTML = cards.map(t=>
+      `<div class="sub-card${filtroAtivo===t?" selected":""}" data-tipo="${t}" style="${corVars(t)}"><div class="label"><span class="dot"></span>${TIPOS[t].nome}</div><div class="value" id="tot-${t}">R$ 0,00</div></div>`
+    ).join("");
+    $("subTotals").style.display = cards.length ? "grid" : "none";
+    $("investLine").style.display = visiveis.includes("investimento") ? "inline-block" : "none";
+    $("investLine").classList.toggle("selected", filtroAtivo === "investimento");
+
+    $("filters").innerHTML = `<button class="filter-btn${filtroAtivo==="todos"?" active":""}" data-filter="todos">Todos</button>` +
+      visiveis.map(t=> `<button class="filter-btn${filtroAtivo===t?" active":""}" data-filter="${t}">${TIPOS[t].nome}</button>`).join("");
+
+    document.querySelectorAll(".filter-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=> aplicarFiltro(filtroAtivo === btn.dataset.filter ? "todos" : btn.dataset.filter, false));
+    });
+    document.querySelectorAll(".sub-card").forEach(card=>{
+      card.addEventListener("click", ()=> aplicarFiltro(filtroAtivo === card.dataset.tipo ? "todos" : card.dataset.tipo, true));
+    });
+  }
+  $("investLine").addEventListener("click", ()=> aplicarFiltro(filtroAtivo === "investimento" ? "todos" : "investimento", true));
+
   function aplicarFiltro(f, rolar){
     filtroAtivo = f;
     document.querySelectorAll(".filter-btn").forEach(b=> b.classList.toggle("active", b.dataset.filter === f));
     document.querySelectorAll(".sub-card").forEach(c=> c.classList.toggle("selected", c.dataset.tipo === f));
-    document.querySelector(".invest-line").classList.toggle("selected", f === "investimento");
+    $("investLine").classList.toggle("selected", f === "investimento");
     const ativo = document.querySelector(`.filter-btn[data-filter="${f}"]`);
     if(ativo) ativo.scrollIntoView({ block:"nearest", inline:"center" });
     render();
     if(rolar && f !== "todos") $("filters").scrollIntoView({ behavior:"smooth", block:"start" });
   }
-  document.querySelectorAll(".filter-btn").forEach(btn=>{
-    btn.addEventListener("click", ()=> aplicarFiltro(filtroAtivo === btn.dataset.filter ? "todos" : btn.dataset.filter, false));
-  });
-  /* tocar num cartão do resumo filtra a lista e desce até ela; tocar de novo volta pra "Todos" */
-  document.querySelectorAll(".sub-card").forEach(card=>{
-    card.addEventListener("click", ()=> aplicarFiltro(filtroAtivo === card.dataset.tipo ? "todos" : card.dataset.tipo, true));
-  });
-  document.querySelector(".invest-line").addEventListener("click", ()=>
-    aplicarFiltro(filtroAtivo === "investimento" ? "todos" : "investimento", true));
-
-  /* ===== navegador de mês ===== */
-  const NOMES_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-  const nomeMesAtual = ()=> NOMES_MES[mesSelecionado].charAt(0).toUpperCase() + NOMES_MES[mesSelecionado].slice(1) + " de " + anoSelecionado;
-
-  function atualizarMonthNav(){
-    monthLabel.textContent = nomeMesAtual();
-    const ehMesAtual = anoSelecionado === hoje.getFullYear() && mesSelecionado === hoje.getMonth();
-    todayBtn.style.display = ehMesAtual ? "none" : "block";
-    $("hojeRow").style.display = ehMesAtual ? "block" : "none";
-    monthPicker.value = anoSelecionado + "-" + String(mesSelecionado + 1).padStart(2, "0");
-  }
-  function irParaMes(ano, mes){ anoSelecionado = ano; mesSelecionado = mes; atualizarMonthNav(); render(); }
-
-  $("prevMonthBtn").addEventListener("click", ()=>{
-    mesSelecionado--; if(mesSelecionado < 0){ mesSelecionado = 11; anoSelecionado--; }
-    irParaMes(anoSelecionado, mesSelecionado);
-  });
-  $("nextMonthBtn").addEventListener("click", ()=>{
-    mesSelecionado++; if(mesSelecionado > 11){ mesSelecionado = 0; anoSelecionado++; }
-    irParaMes(anoSelecionado, mesSelecionado);
-  });
-  todayBtn.addEventListener("click", ()=> irParaMes(hoje.getFullYear(), hoje.getMonth()));
-  monthLabel.addEventListener("click", ()=>{ if(monthPicker.showPicker){ monthPicker.showPicker(); } else { monthPicker.click(); } });
-  monthPicker.addEventListener("change", ()=>{
-    if(!monthPicker.value) return;
-    const [ano, mes] = monthPicker.value.split("-").map(Number);
-    irParaMes(ano, mes - 1);
-  });
-
-  const doMesSelecionado = ()=> GASTOS.filter(g=>{
-    const d = new Date(g.data);
-    return d.getFullYear() === anoSelecionado && d.getMonth() === mesSelecionado;
-  });
 
   /* ===== render ===== */
   function render(){
@@ -360,80 +469,189 @@
     const gastos = doMes.filter(ehGasto);
     $("totalGasto").textContent = fmt(soma(gastos));
     $("totalInvest").textContent = fmt(soma(doMes.filter(g=>g.tipo==="investimento")));
-    TIPOS_GASTO.forEach(t=> $("tot-"+t).textContent = fmt(soma(doMes.filter(g=>g.tipo===t))));
+    TIPOS_GASTO.forEach(t=>{ const el = $("tot-"+t); if(el) el.textContent = fmt(soma(doMes.filter(g=>g.tipo===t))); });
     $("totalHoje").textContent = fmt(soma(gastos.filter(g=> new Date(g.data).toDateString() === hoje.toDateString())));
 
     let lista = [...doMes].sort((a,b)=> new Date(b.data) - new Date(a.data));
     if(filtroAtivo !== "todos") lista = lista.filter(g => g.tipo === filtroAtivo);
 
     if(lista.length === 0){
-      entriesList.innerHTML = `<div class="empty">${doMes.length===0 ? "Nenhum lançamento neste mês." : "Nenhum lançamento nesse filtro, neste mês."}</div>`;
-      return;
-    }
-
-    entriesList.innerHTML = lista.map(g => `
-      <div class="entry">
-        <div class="left">
-          <div class="top-row"><span class="badge" style="${corVars(g.tipo)}">${(TIPOS[g.tipo]||{nome:g.tipo}).nome}</span></div>
-          <div class="motivo">${esc(g.motivo)}</div>
-          <div class="data">${fmtData(g.data)}</div>
-        </div>
-        <div class="right">
-          <span class="valor">${fmt(g.valor)}</span>
-          <button class="del" data-id="${g.id}">✕</button>
-        </div>
-      </div>`).join("");
-
-    entriesList.querySelectorAll(".del").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        if(btn.dataset.confirm !== "1"){
-          btn.dataset.confirm = "1"; btn.classList.add("confirming");
-          setTimeout(()=>{ btn.dataset.confirm = "0"; btn.classList.remove("confirming"); }, 2500);
-          return;
-        }
-        GASTOS = GASTOS.filter(g => g.id !== btn.dataset.id);
-        saveGastos(); render();
+      $("entriesList").innerHTML = `<div class="empty">${doMes.length===0 ? "Nenhum lançamento neste mês." : "Nenhum lançamento nesse filtro, neste mês."}</div>`;
+    }else{
+      $("entriesList").innerHTML = lista.map(g => `
+        <div class="entry">
+          <div class="left">
+            <div class="top-row"><span class="badge" style="${corVars(g.tipo)}">${esc((TIPOS[g.tipo]||{nome:g.tipo}).nome)}</span></div>
+            <div class="motivo">${esc(g.motivo)}</div>
+            <div class="data">${fmtData(g.data)}</div>
+          </div>
+          <div class="right">
+            <span class="valor">${fmt(g.valor)}</span>
+            <button class="del" data-id="${esc(g.id)}" aria-label="Apagar">✕</button>
+          </div>
+        </div>`).join("");
+      $("entriesList").querySelectorAll(".del").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          if(btn.dataset.confirm !== "1"){
+            btn.dataset.confirm = "1"; btn.classList.add("confirming");
+            setTimeout(()=>{ btn.dataset.confirm = "0"; btn.classList.remove("confirming"); }, 2500);
+            return;
+          }
+          GASTOS = GASTOS.filter(g => g.id !== btn.dataset.id);
+          salvar(); montarDinamico(); render();
+        });
       });
-    });
+    }
+    atualizarInfoBackup();
   }
 
   /* ===== adicionar ===== */
-  form.addEventListener("submit", (e)=>{
+  $("gastoForm").addEventListener("submit", (e)=>{
     e.preventDefault();
-    formError.style.display = "none";
-    const valor = parseFloat($("fValor").value);
+    const erro = $("formError"); erro.style.display = "none";
+    const valor = parseFloat(String($("fValor").value).replace(",", "."));
     const motivo = $("fMotivo").value.trim();
     if(isNaN(valor) || valor <= 0 || !motivo || !tipoSelecionado){
-      formError.textContent = !tipoSelecionado ? "Escolhe o tipo do lançamento." : "Preenche o valor e o motivo antes de adicionar.";
-      formError.style.display = "block";
-      return;
+      erro.textContent = !tipoSelecionado ? "Escolha o tipo do lançamento." : "Preencha o valor e o motivo antes de adicionar.";
+      erro.style.display = "block"; return;
     }
-    GASTOS.push({ id: "g" + Date.now() + Math.random().toString(36).slice(2,7), valor, motivo, tipo: tipoSelecionado, data: new Date().toISOString() });
-    if(!saveGastos()){
-      formError.textContent = "Não consegui salvar. O celular pode estar sem espaço de armazenamento.";
-      formError.style.display = "block";
-      GASTOS.pop();
-      return;
+    GASTOS.push({ id:"g" + Date.now() + Math.random().toString(36).slice(2,7), valor:Math.round(valor*100)/100, motivo, tipo:tipoSelecionado, data:new Date().toISOString() });
+    if(!salvar()){
+      erro.textContent = "Não consegui salvar. O celular pode estar sem espaço de armazenamento.";
+      erro.style.display = "block"; GASTOS.pop(); return;
     }
-    form.reset();
-    tipoSelecionado = null;
-    document.querySelectorAll(".toggle-btn").forEach(b=>b.classList.remove("active"));
+    $("gastoForm").reset(); tipoSelecionado = null;
     $("fValor").focus();
     irParaMes(hoje.getFullYear(), hoje.getMonth());
   });
 
+  /* ===== escolher tipos (lápis) ===== */
+  let tiposRascunho = [];
+  function desenharTipos(){
+    $("tiposLista").innerHTML = ORDEM.map(t=>
+      `<div class="tipo-opcao${tiposRascunho.includes(t)?" on":""}" data-tipo="${t}" style="${corVars(t)}">
+        <div class="txt"><b><span class="dot"></span>${TIPOS[t].nome}</b><span>${TIPOS[t].desc}</span></div>
+        <div class="switch"></div>
+      </div>`).join("");
+    document.querySelectorAll(".tipo-opcao").forEach(op=>{
+      op.addEventListener("click", ()=>{
+        const t = op.dataset.tipo;
+        tiposRascunho = tiposRascunho.includes(t) ? tiposRascunho.filter(x=>x!==t) : tiposRascunho.concat(t);
+        $("tiposErro").textContent = "";
+        desenharTipos();
+      });
+    });
+  }
+  $("editTiposBtn").addEventListener("click", ()=>{
+    tiposRascunho = CONFIG.tipos.slice(); $("tiposErro").textContent = "";
+    desenharTipos(); abrir("tiposModal");
+  });
+  $("tiposSalvar").addEventListener("click", ()=>{
+    if(!tiposRascunho.length){ $("tiposErro").textContent = "Deixe pelo menos um tipo ligado."; return; }
+    CONFIG.tipos = ORDEM.filter(t=> tiposRascunho.includes(t));
+    salvarConfig(); fechar("tiposModal"); montarDinamico(); render();
+  });
+
+  /* ===== modais ===== */
+  function abrir(id){ $(id).classList.add("open"); document.body.style.overflow = "hidden"; }
+  function fechar(id){ $(id).classList.remove("open"); document.body.style.overflow = ""; }
+  document.querySelectorAll(".modal-bg").forEach(bg=>{
+    bg.addEventListener("click", (e)=>{ if(e.target === bg && bg.id !== "welcomeModal") fechar(bg.id); });
+  });
+
+  /* ===== boas-vindas e instalação ===== */
+  const ehStandalone = ()=> (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  function escolherOS(os){
+    document.querySelectorAll(".tab").forEach(t=> t.classList.toggle("active", t.dataset.os === os));
+    $("passos-ios").style.display = os === "ios" ? "block" : "none";
+    $("passos-android").style.display = os === "android" ? "block" : "none";
+  }
+  document.querySelectorAll(".tab").forEach(t=> t.addEventListener("click", ()=> escolherOS(t.dataset.os)));
+  function abrirBoasVindas(){
+    const app = ehStandalone();
+    $("instalarBox").style.display = app ? "none" : "block";
+    $("jaApp").style.display = app ? "block" : "none";
+    escolherOS(ehIOS ? "ios" : "android");
+    abrir("welcomeModal");
+  }
+  $("welcomeOk").addEventListener("click", ()=>{
+    CONFIG.boasVindasVista = true; salvarConfig(); fechar("welcomeModal");
+  });
+  $("helpBtn").addEventListener("click", abrirBoasVindas);
+
+  /* ===== backup ===== */
+  function atualizarInfoBackup(){
+    const info = $("backupInfo");
+    if(!GASTOS.length){ info.textContent = ""; info.classList.remove("alerta"); return; }
+    if(!CONFIG.ultimoBackup){ info.textContent = "Você ainda não fez nenhum backup."; info.classList.add("alerta"); return; }
+    const dias = Math.floor((Date.now() - new Date(CONFIG.ultimoBackup)) / 86400000);
+    info.textContent = "Último backup: " + new Date(CONFIG.ultimoBackup).toLocaleDateString("pt-BR") + (dias >= 30 ? " — hora de fazer outro" : "");
+    info.classList.toggle("alerta", dias >= 30);
+  }
+
+  $("backupBtn").addEventListener("click", async ()=>{
+    if(!GASTOS.length){ $("pdfMsg").textContent = "Ainda não há lançamentos para salvar."; return; }
+    const d = new Date();
+    const nome = "gastos-backup-" + d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") + ".json";
+    const conteudo = JSON.stringify({ app:"gastos", versao:1, exportadoEm:d.toISOString(), config:{ tipos:CONFIG.tipos }, lancamentos:GASTOS }, null, 1);
+    const blob = new Blob([conteudo], { type:"application/json" });
+    let ok = false;
+    try{
+      const arquivo = new File([blob], nome, { type:"application/json" });
+      if(navigator.canShare && navigator.canShare({ files:[arquivo] })){
+        await navigator.share({ files:[arquivo], title:"Backup do Gastos" });
+        ok = true;
+      }
+    }catch(e){ if(e && e.name === "AbortError") return; }
+    if(!ok){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = nome;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    }
+    CONFIG.ultimoBackup = d.toISOString(); salvarConfig(); atualizarInfoBackup();
+    $("pdfMsg").textContent = "Backup gerado. Guarde o arquivo num lugar seguro (Drive, e-mail ou WhatsApp).";
+    setTimeout(()=>{ $("pdfMsg").textContent = ""; }, 6000);
+  });
+
+  $("restoreBtn").addEventListener("click", ()=> $("restoreFile").click());
+  $("restoreFile").addEventListener("change", ()=>{
+    const f = $("restoreFile").files[0]; if(!f) return;
+    const leitor = new FileReader();
+    leitor.onload = ()=>{
+      $("restoreFile").value = "";
+      let dados;
+      try{ dados = JSON.parse(leitor.result); }catch(e){ $("pdfMsg").textContent = "Esse arquivo não é um backup válido do Gastos."; return; }
+      const lista = Array.isArray(dados) ? dados : (dados && Array.isArray(dados.lancamentos) ? dados.lancamentos : null);
+      if(!lista){ $("pdfMsg").textContent = "Esse arquivo não é um backup válido do Gastos."; return; }
+      const validos = lista.filter(g=> g && typeof g.id === "string" && typeof g.motivo === "string" &&
+        typeof g.valor === "number" && g.valor > 0 && TIPOS[g.tipo] && !isNaN(new Date(g.data)));
+      const ids = new Set(GASTOS.map(g=>g.id));
+      const novos = validos.filter(g=> !ids.has(g.id)).map(g=> ({ id:g.id, valor:g.valor, motivo:g.motivo.slice(0,80), tipo:g.tipo, data:g.data }));
+      GASTOS = GASTOS.concat(novos);
+      if(!salvar()){ GASTOS = GASTOS.slice(0, GASTOS.length - novos.length); $("pdfMsg").textContent = "Não consegui salvar o backup no celular."; return; }
+      if(dados.config && Array.isArray(dados.config.tipos)){
+        const t = ORDEM.filter(x=> dados.config.tipos.includes(x));
+        if(t.length){ CONFIG.tipos = t; salvarConfig(); }
+      }
+      montarDinamico(); render();
+      const repetidos = validos.length - novos.length;
+      $("pdfMsg").textContent = novos.length + " lançamento(s) restaurado(s)" + (repetidos ? ", " + repetidos + " já estavam aqui." : ".");
+      setTimeout(()=>{ $("pdfMsg").textContent = ""; }, 6000);
+    };
+    leitor.readAsText(f);
+  });
+
   /* ===== extrato PDF ===== */
-  const pdfMsg = $("pdfMsg");
   const brl = (n)=> fmt(n).replace(/\u00a0/g, " ");
   const limpa = (t)=> String(t).replace(/[^\u0000-\u00ff\u2013\u2014]/g, "").trim() || "-";
 
   function gerarExtratoPDF(){
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      pdfMsg.textContent = "Não consegui carregar o gerador de PDF. Confira a internet e tente de novo.";
-      return;
-    }
+    const msg = $("pdfMsg");
+    if(!window.jspdf || !window.jspdf.jsPDF){ msg.textContent = "Não consegui carregar o gerador de PDF. Confira a internet e tente de novo."; return; }
     const doMes = doMesSelecionado().sort((a,b)=> new Date(a.data) - new Date(b.data));
-    if(doMes.length === 0){ pdfMsg.textContent = "Nenhum lançamento neste mês para gerar o extrato."; return; }
+    if(doMes.length === 0){ msg.textContent = "Nenhum lançamento neste mês para gerar o extrato."; return; }
 
     const gastos = doMes.filter(ehGasto);
     const invest = doMes.filter(g=>g.tipo==="investimento");
@@ -441,6 +659,8 @@
     const pct = (v)=> totGasto ? (v/totGasto*100).toFixed(1).replace(".", ",") + "%" : "-";
     const nomeMes = nomeMesAtual();
     const diasNoMes = new Date(anoSelecionado, mesSelecionado + 1, 0).getDate();
+    const tiposNoPDF = TIPOS_GASTO.filter(t=> CONFIG.tipos.includes(t) || doMes.some(g=>g.tipo===t));
+    const mostraInvest = CONFIG.tipos.includes("investimento") || invest.length > 0;
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -454,23 +674,21 @@
     doc.setFontSize(9);
     doc.text("Gerado em " + new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}), W - M, 20, { align:"right" });
 
-    const linhasResumo = TIPOS_GASTO.map(t=>{
-      const l = doMes.filter(g=>g.tipo===t);
-      return [TIPOS[t].nome + " (" + l.length + ")", brl(soma(l)), pct(soma(l))];
-    });
-    linhasResumo.push(["Gasto do mês (" + gastos.length + " lançamentos)", brl(totGasto), totGasto ? "100%" : "-"]);
-    linhasResumo.push(["Média de gasto por dia (" + diasNoMes + " dias)", brl(totGasto / diasNoMes), ""]);
+    const linhas = tiposNoPDF.map(t=>{ const l = doMes.filter(g=>g.tipo===t); return [TIPOS[t].nome + " (" + l.length + ")", brl(soma(l)), pct(soma(l))]; });
+    const iTotal = linhas.length;
+    linhas.push(["Gasto do mês (" + gastos.length + " lançamentos)", brl(totGasto), totGasto ? "100%" : "-"]);
+    linhas.push(["Média de gasto por dia (" + diasNoMes + " dias)", brl(totGasto / diasNoMes), ""]);
     if(gastos.length){
       const maior = gastos.reduce((m,g)=> g.valor > m.valor ? g : m, gastos[0]);
-      linhasResumo.push(["Maior gasto: " + limpa(maior.motivo), brl(maior.valor), pct(maior.valor)]);
+      linhas.push(["Maior gasto: " + limpa(maior.motivo), brl(maior.valor), pct(maior.valor)]);
     }
-    linhasResumo.push(["Investido no mês (" + invest.length + ")", brl(totInvest), "fora do gasto"]);
-    const iTotal = TIPOS_GASTO.length, iInvest = linhasResumo.length - 1;
+    let iInvest = -1;
+    if(mostraInvest){ linhas.push(["Investido no mês (" + invest.length + ")", brl(totInvest), "fora do gasto"]); iInvest = linhas.length - 1; }
 
     doc.autoTable({
       startY: 34,
       head: [["Resumo do mês", "Valor", "% do gasto"]],
-      body: linhasResumo,
+      body: linhas,
       theme: "grid",
       headStyles: { fillColor: DARK, textColor: 255, fontStyle:"bold" },
       columnStyles: { 1:{ halign:"right", cellWidth:35 }, 2:{ halign:"right", cellWidth:28 } },
@@ -478,7 +696,7 @@
       didParseCell: (d)=>{
         if(d.section === "head" && d.column.index > 0) d.cell.styles.halign = "right";
         if(d.section !== "body") return;
-        if(d.row.index < iTotal && d.column.index === 0) d.cell.styles.textColor = TIPOS[TIPOS_GASTO[d.row.index]].pdf;
+        if(d.row.index < iTotal && d.column.index === 0) d.cell.styles.textColor = TIPOS[tiposNoPDF[d.row.index]].pdf;
         if(d.row.index === iTotal) d.cell.styles.fontStyle = "bold";
         if(d.row.index === iInvest){ d.cell.styles.textColor = TIPOS.investimento.pdf; d.cell.styles.fontStyle = "bold"; }
       },
@@ -508,39 +726,41 @@
         margin: { left:M, right:M }
       });
     }
-    TIPOS_GASTO.forEach(secao);
+    tiposNoPDF.forEach(secao);
     secao("investimento");
 
     let y = doc.lastAutoTable.finalY + 10;
     if(y > 262){ doc.addPage(); y = 20; }
     doc.setDrawColor(...DARK); doc.setLineWidth(0.5); doc.line(M, y - 5, W - M, y - 5);
     doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...DARK);
-    doc.text("Gasto do mês", M, y + 1);
-    doc.text(brl(totGasto), W - M, y + 1, { align:"right" });
-    doc.setFontSize(11); doc.setTextColor(...TIPOS.investimento.pdf);
-    doc.text("Investido no mês", M, y + 8);
-    doc.text(brl(totInvest), W - M, y + 8, { align:"right" });
-    doc.setTextColor(...GREY); doc.setFont("helvetica","normal");
-    doc.text("Total que saiu da conta", M, y + 15);
-    doc.text(brl(totGasto + totInvest), W - M, y + 15, { align:"right" });
+    doc.text("Gasto do mês", M, y + 1); doc.text(brl(totGasto), W - M, y + 1, { align:"right" });
+    if(mostraInvest){
+      doc.setFontSize(11); doc.setTextColor(...TIPOS.investimento.pdf);
+      doc.text("Investido no mês", M, y + 8); doc.text(brl(totInvest), W - M, y + 8, { align:"right" });
+      doc.setTextColor(...GREY); doc.setFont("helvetica","normal");
+      doc.text("Total que saiu da conta", M, y + 15); doc.text(brl(totGasto + totInvest), W - M, y + 15, { align:"right" });
+    }
 
     const n = doc.getNumberOfPages();
     for(let i = 1; i <= n; i++){
       doc.setPage(i);
       doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...GREY);
-      doc.text("Controle de Gastos — " + nomeMes, M, 290);
+      doc.text("Gastos — " + nomeMes, M, 290);
       doc.text("Página " + i + " de " + n, W - M, 290, { align:"right" });
     }
     doc.save("extrato-gastos-" + anoSelecionado + "-" + String(mesSelecionado + 1).padStart(2, "0") + ".pdf");
-    pdfMsg.textContent = "Extrato de " + nomeMes + " gerado.";
-    setTimeout(()=>{ pdfMsg.textContent = ""; }, 5000);
+    msg.textContent = "Extrato de " + nomeMes + " gerado.";
+    setTimeout(()=>{ msg.textContent = ""; }, 5000);
   }
   $("pdfBtn").addEventListener("click", gerarExtratoPDF);
 
-  loadGastos();
-  migrar();
+  /* ===== início ===== */
+  carregar();
   atualizarMonthNav();
+  montarDinamico();
   render();
+  if(!CONFIG.boasVindasVista) abrirBoasVindas();
+
 })();
 </script>
 </body>
